@@ -179,13 +179,6 @@ static auto GetBwdWrW2DSolvers()
                                            miopen::solver::ConvOclBwdWrW1x1>{};
 }
 
-#if MIOPEN_USE_SCGEMM
-static auto GetFwdSCGemmSolvers()
-{
-    return miopen::solver::SolverContainer<miopen::solver::ConvSCGemmFGemm>{};
-}
-#endif
-
 std::vector<miopen::solver::ConvSolution>
 FindAllDirectSolutions(const miopen::ConvolutionContext& ctx)
 {
@@ -246,16 +239,6 @@ FindAllBwdWrW2DSolutions(const miopen::ConvolutionContext& ctx)
     return GetBwdWrW2DSolvers().SearchForAllSolutions(ctx, GetDb(ctx));
 }
 
-std::vector<miopen::solver::ConvSolution>
-FindAllFwdSCGemmSolutions(const miopen::ConvolutionContext& ctx)
-{
-#if MIOPEN_USE_SCGEMM
-    return GetFwdSCGemmSolvers().SearchForAllSolutions(ctx, GetDb(ctx));
-#else
-    (void)ctx;
-    return {};
-#endif
-}
 
 #if MIOPEN_BACKEND_OPENCL
 static bool IsTokenWithin(const std::string& s, const char* delimiters, const std::string& find_tok)

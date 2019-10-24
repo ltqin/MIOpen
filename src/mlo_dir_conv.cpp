@@ -239,7 +239,6 @@ FindAllBwdWrW2DSolutions(const miopen::ConvolutionContext& ctx)
     return GetBwdWrW2DSolvers().SearchForAllSolutions(ctx, GetDb(ctx));
 }
 
-
 #if MIOPEN_BACKEND_OPENCL
 static bool IsTokenWithin(const std::string& s, const char* delimiters, const std::string& find_tok)
 {

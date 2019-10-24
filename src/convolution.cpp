@@ -481,10 +481,8 @@ std::size_t ConvolutionDescriptor::ForwardGetWorkSpaceSize(Handle& handle,
             ? ForwardGetWorkSpaceSizeFFT(wDesc, xDesc, yDesc)
             : 0;
 
-    return std::max({workspace_size_fft,
-                     workspace_size_gemm,
-                     direct_workspace,
-                     implicit_gemm_workspace});
+    return std::max(
+        {workspace_size_fft, workspace_size_gemm, direct_workspace, implicit_gemm_workspace});
 }
 
 std::size_t
@@ -682,8 +680,6 @@ std::size_t ConvolutionDescriptor::ForwardBackwardDataGetWorkSpaceSizeDirect(
         return 0;
     }
 }
-
-
 
 std::size_t
 ConvolutionDescriptor::BackwardWeightsGetWorkSpaceSizeDirect(Handle& handle,

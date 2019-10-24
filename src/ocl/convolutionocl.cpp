@@ -285,7 +285,6 @@ EvaluateDataImplicitGemmSolution(Handle& handle,
     return 0;
 }
 
-
 std::vector<miopen::solver::ConvSolution>
 ConvolutionDescriptor::FindWinogradSolutions(const ConvolutionContext& ctx) const
 {
@@ -373,7 +372,6 @@ ConvolutionDescriptor::FindDataImplicitGemmSolutions(Handle& handle,
         return {};
     }
 }
-
 
 struct ConvTensors
 {
@@ -1089,7 +1087,6 @@ void ConvFwdImplicitGemm(const ConvolutionContext& ctx,
                          Data_t workSpace,
                          std::size_t workSpaceSize,
                          const TKernels& kernels);
-
 
 void ConvolutionDescriptor::ConvolutionForward(Handle& handle,
                                                const void* alpha,
@@ -1907,8 +1904,6 @@ void ConvolutionDescriptor::ConvFwdFFT(Handle& handle,
         handle.AccumKernelTime(timev);
     }
 }
-
-
 
 std::size_t ConvolutionDescriptor::GetFwdSolutionCountFallback(const TensorDescriptor& wDesc,
                                                                const TensorDescriptor& xDesc,

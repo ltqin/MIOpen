@@ -1062,7 +1062,6 @@ struct ConvOclBwdWrW1x1 : SolverBase<ConvolutionContext>
     size_t GetWorkspaceSize(const ConvolutionContext& params) const;
 };
 
-
 /// Partial implementation.
 struct gemm : SolverBase<ConvolutionContext>
 {

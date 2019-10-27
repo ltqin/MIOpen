@@ -4418,6 +4418,13 @@ void ConvolutionDescriptor::FindConvBwdWeightsAlgorithm(Handle& handle,
                     else if(sol.solver_id == SolverDbId(miopen::solver::ConvWinograd3x3MultipassWrW<1, 1, 7, 3>()))
                         EvaluateWinograd3x3MultipassWrW<1,1,7,3>(
                             handle, ctx, tensors, workSpace, kernels, GetConvPads()[0], GetConvPads()[1],&elapsed);
+                    else if(sol.solver_id == SolverDbId(miopen::solver::ConvWinograd3x3MultipassWrW<5, 3>()))
+                        EvaluateWinograd3x3MultipassWrW<5,3>(
+                            handle, ctx, tensors, workSpace, kernels, GetConvPads()[0], GetConvPads()[1],&elapsed);
+                    else if(sol.solver_id == SolverDbId(miopen::solver::ConvWinograd3x3MultipassWrW<5, 4>()))
+                        EvaluateWinograd3x3MultipassWrW<5,4>(
+                            handle, ctx, tensors, workSpace, kernels, GetConvPads()[0], GetConvPads()[1],&elapsed);
+
                     else // clang-format on
                     {
                         int unused                     = 0;
@@ -5017,6 +5024,14 @@ void ConvolutionDescriptor::BackwardWeightsWinograd(Handle& handle,
         else if(kernel_1.GetName() ==
                 solver::ConvWinograd3x3MultipassWrW<1, 1, 7, 3>::GetSolverKernelNames(0))
             EvaluateWinograd3x3MultipassWrW<1, 1, 7, 3>(
+                handle, ctx, tensors, workSpace, kernels, GetConvPads()[0], GetConvPads()[1]);
+        else if(kernel_1.GetName() ==
+                solver::ConvWinograd3x3MultipassWrW<5, 3>::GetSolverKernelNames(0))
+            EvaluateWinograd3x3MultipassWrW<5, 3>(
+                handle, ctx, tensors, workSpace, kernels, GetConvPads()[0], GetConvPads()[1]);
+        else if(kernel_1.GetName() ==
+                solver::ConvWinograd3x3MultipassWrW<5, 4>::GetSolverKernelNames(0))
+            EvaluateWinograd3x3MultipassWrW<5, 4>(
                 handle, ctx, tensors, workSpace, kernels, GetConvPads()[0], GetConvPads()[1]);
     }
     else

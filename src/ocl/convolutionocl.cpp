@@ -413,18 +413,19 @@ struct ConvTensors
     }
 }
 
-static void DirConvFindCore(Handle& handle,
-                            const TensorDescriptor& xDesc,
-                            ConstData_t x,
-                            const TensorDescriptor& wDesc,
-                            ConstData_t w,
-                            const TensorDescriptor& yDesc,
-                            Data_t y,
-                            Data_t workSpace,
-                            size_t workSpaceSize,
-                            const ConvolutionDescriptor& conv,
-                            bool exhaustiveSearch,
-                            DbRecord& record)
+static void
+DirConvFindCore(Handle& handle,
+                const TensorDescriptor& xDesc,
+                ConstData_t x,
+                const TensorDescriptor& wDesc,
+                ConstData_t w,
+                const TensorDescriptor& yDesc,
+                Data_t y,
+                Data_t workSpace,
+                size_t workSpaceSize,
+                const ConvolutionDescriptor& conv,
+                bool exhaustiveSearch,
+                DbRecord& record)
 {
     AutoEnableProfiling enableProfiling{handle};
 

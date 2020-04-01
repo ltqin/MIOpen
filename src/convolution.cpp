@@ -455,15 +455,12 @@ std::size_t ConvolutionDescriptor::ForwardGetWorkSpaceSize(Handle& handle,
             /// \todo WORKAROUND for issue 1430
             if(gemm_trans > MAX_MEM_ALLOC_SZ /* handle.GetMaxMemoryAllocSize() */)
                 gemm_trans = 0;
-            return std::max(
-                {gemm_trans, direct_workspace, implicit_gemm_workspace});
+            return std::max({gemm_trans, direct_workspace, implicit_gemm_workspace});
         }
 
         if(miopen::any_of(GetConvDilations(), [](auto v) { return v > 1; }))
         {
-            return std::max({workspace_size_gemm,
-                             direct_workspace,
-                             implicit_gemm_workspace});
+            return std::max({workspace_size_gemm, direct_workspace, implicit_gemm_workspace});
         }
     }
 #endif
@@ -477,10 +474,8 @@ std::size_t ConvolutionDescriptor::ForwardGetWorkSpaceSize(Handle& handle,
             ? ForwardGetWorkSpaceSizeFFT(wDesc, xDesc, yDesc)
             : 0;
 
-    const size_t workspace_size = std::max({workspace_size_fft,
-                                            direct_workspace,
-                                            implicit_gemm_workspace,
-                                            workspace_size_scgemm});
+    const size_t workspace_size = std::max(
+        {workspace_size_fft, direct_workspace, implicit_gemm_workspace, workspace_size_scgemm});
 
     MIOPEN_LOG_I2(workspace_size);
     return workspace_size;
@@ -695,7 +690,6 @@ std::size_t ConvolutionDescriptor::ForwardBackwardDataGetWorkSpaceSizeDirect(
         return 0;
     }
 }
-
 
 std::size_t ConvolutionDescriptor::BackwardWeightsGetWorkSpaceSizeDirect(
     const miopen::ConvolutionContext& ctx) const

@@ -28,6 +28,8 @@
 #include <limits>
 #include <cassert>
 
+#include <miopen/conv/compiled_in_parameters.hpp>
+#include <miopen/conv/wrw_invoke_params.hpp>
 #include <miopen/gcn_asm_utils.hpp>
 #include <miopen/env.hpp>
 #include <miopen/logger.hpp>
@@ -342,14 +344,11 @@ bool ConvAsmBwdWrW3x3::IsApplicable(const ConvolutionContext& params) const
         return false;
     if(!params.Is2d())
         return false;
-    if(!params.rmv.IsV2())
+    if(!params.rmv.IsV2orV3())
         return false;
-
     const std::string name = params.GetStream().GetDeviceName();
-    if(name.find("gfx9") == std::string::npos)
-    {
+    if(!(StartsWith(name, "gfx8") || StartsWith(name, "gfx9")))
         return false;
-    }
     assert(params.weights_layout.length() == 0); // _weights_layout is not supported yet
     // clang-format off
     bool ok = params.pad_w == 1           // -q  pad_w
@@ -364,16 +363,12 @@ bool ConvAsmBwdWrW3x3::IsApplicable(const ConvolutionContext& params) const
         && (params.IsFp32() || params.IsFp16())
         && params.in_layout == "NCHW";
     if(!ok)
-    {
         return false; // Early exit to speed up the check.
-    }
 
     if(params.IsFp16()
-          && (name.find("gfx8") != std::string::npos // Not supported.
+          && (StartsWith(name, "gfx8") // Not supported.
              || params.batch_sz % 2 != 0)) /// \todo Initial version.
-    {
        return false;
-    }
 
     // Check limits:
     const auto h_w     = static_cast<long>(params.out_height) * params.out_width;
@@ -401,11 +396,8 @@ bool ConvAsmBwdWrW3x3::IsApplicable(const ConvolutionContext& params) const
          && n_c_h_w < std::pow(2, 29)
          && n_k_h_w < std::pow(2, 29)
          && c_k_r_s < std::pow(2, 29);              // clang-format on
-
     return ok;
 }
-
-bool ConvAsmBwdWrW3x3::IsFast(const ConvolutionContext&) const { return true; }
 
 ConvSolution ConvAsmBwdWrW3x3::GetSolution(const ConvolutionContext& params,
                                            const PerformanceConfigAsmDirect3x3WrW& config,
@@ -428,7 +420,7 @@ ConvSolution ConvAsmBwdWrW3x3::GetSolution(const ConvolutionContext& params,
     GenerateClangDefsym(options, "stride_w", params.kernel_stride_w);
     GenerateClangDefsym(options, "weights_layout", 0);
     GenerateClangDefsym(options, "reverse_weights", 0);
-    GenerateClangDefsym(options, "ROCM_METADATA_VERSION", 4);
+    GenerateClangDefsym(options, "ROCM_METADATA_VERSION", params.rmv.UseV3() ? 5 : 4);
     // Perf tune:
     const PerformanceConfigAsmDirect3x3WrW* pcfg = &config;
     PerformanceConfigAsmDirect3x3WrW fromEnv;
@@ -496,10 +488,27 @@ ConvSolution ConvAsmBwdWrW3x3::GetSolution(const ConvolutionContext& params,
     }
 
     kernel.kernel_file = "conv3x3wrw.s";
-    kernel.kernel_name = "gcnAsmConv3x3WrW";
+    kernel.kernel_name = "miopenGcnAsmConv3x3WrW";
 
     result.construction_params.push_back(kernel);
     result.workspce_sz = 0;
+
+    int N, C, H, W, K, n_groups;
+    GetCompiledInParameters(params, &N, &C, &H, &W, &K, &n_groups);
+
+    result.invoker_factory = [N, C, H, W, K, n_groups](const std::vector<Kernel>& kernels) {
+        return [=](Handle& handle, const boost::any& primitive_params) {
+            const auto k             = handle.Run(kernels[0]);
+            const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
+            int unused               = 0;
+            int* return_addr         = nullptr;
+            const auto& x            = invoke_params.tensors.x;
+            const auto& dy           = invoke_params.tensors.dy;
+            const auto& dw           = invoke_params.tensors.dw;
+            k(N, C, H, W, K, n_groups, unused, unused, x, dw, dy, return_addr);
+        };
+    };
+
     return result;
 }
 
@@ -550,8 +559,9 @@ int ConvAsmBwdWrW3x3::RunAndMeasureSolution(miopen::Handle& profile_h,
         elapsed_time = profile_h.GetKernelTime();
     }
 #ifdef NDEBUG
-    catch(miopen::Exception&)
+    catch(miopen::Exception& ex)
     {
+        MIOPEN_LOG_WE(ex.what());
         return -1;
     }
 #endif

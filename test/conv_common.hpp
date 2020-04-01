@@ -65,9 +65,10 @@ static inline bool is_direct_fwd_bwd_data_supported(miopen::Handle& handle,
     // Both Fwd and Bwd shall be supported by Direct. Return false otherwise.
     for(int direction = 1; direction >= 0; --direction)
     {
-        auto ctx          = miopen::ConvolutionContext{xDesc, wDesc, yDesc, convDesc, direction};
-        ctx.do_search     = false;
-        ctx.save_srch_req = false;
+        auto ctx = miopen::ConvolutionContext{
+            xDesc, wDesc, yDesc, convDesc, static_cast<miopen::conv::Direction>(direction)};
+        ctx.do_search               = false;
+        ctx.save_srch_req           = false;
         ctx.disable_perfdb_access   = true;
         ctx.general_compile_options = "";
         ctx.SetStream(&handle);
@@ -88,9 +89,9 @@ static inline bool is_direct_bwd_wrw_supported(miopen::Handle& handle,
     if(convDesc.GetSpatialDimension() != 2)
         return false;
 
-    auto ctx = miopen::ConvolutionContext{xDesc, wDesc, yDesc, convDesc, 0};
+    auto ctx = miopen::ConvolutionContext{
+        xDesc, wDesc, yDesc, convDesc, miopen::conv::Direction::BackwardWeights};
 
-    ctx.direction.SetBackwardWrW();
     ctx.do_search               = false;
     ctx.save_srch_req           = false;
     ctx.general_compile_options = "";
@@ -345,7 +346,7 @@ struct verify_forward_conv : conv_base<T, Tout>
                     exit(-1);
                 }
                 solutions.resize(count);
-                std::sort(solutions.begin(), solutions.end(), [](auto& l, auto& r) {
+                std::sort(solutions.begin(), solutions.end(), [](const auto& l, const auto& r) {
                     return l.time < r.time;
                 });
                 selected = solutions.front();
@@ -410,7 +411,7 @@ struct verify_forward_conv : conv_base<T, Tout>
                     exit(-1);
                 }
                 solutions.resize(count);
-                std::sort(solutions.begin(), solutions.end(), [](auto& l, auto& r) {
+                std::sort(solutions.begin(), solutions.end(), [](const auto& l, const auto& r) {
                     return l.time < r.time;
                 });
                 selected = solutions.front();
@@ -758,7 +759,7 @@ struct verify_backward_conv : conv_base<T>
                     exit(-1);
                 }
                 solutions.resize(count);
-                std::sort(solutions.begin(), solutions.end(), [](auto& l, auto& r) {
+                std::sort(solutions.begin(), solutions.end(), [](const auto& l, const auto& r) {
                     return l.time < r.time;
                 });
                 selected = solutions.front();
@@ -823,7 +824,7 @@ struct verify_backward_conv : conv_base<T>
                     exit(-1);
                 }
                 solutions.resize(count);
-                std::sort(solutions.begin(), solutions.end(), [](auto& l, auto& r) {
+                std::sort(solutions.begin(), solutions.end(), [](const auto& l, const auto& r) {
                     return l.time < r.time;
                 });
                 selected = solutions.front();
@@ -1085,7 +1086,7 @@ struct verify_backward_weights_conv : conv_base<T>
                 exit(-1);
             }
             solutions.resize(count);
-            std::sort(solutions.begin(), solutions.end(), [](auto& l, auto& r) {
+            std::sort(solutions.begin(), solutions.end(), [](const auto& l, const auto& r) {
                 return l.time < r.time;
             });
             selected = solutions.front();
@@ -1340,8 +1341,9 @@ struct verify_forward_conv_int8 : conv_base<T>
             exit(-1);
         }
         solutions.resize(count);
-        std::sort(
-            solutions.begin(), solutions.end(), [](auto& l, auto& r) { return l.time < r.time; });
+        std::sort(solutions.begin(), solutions.end(), [](const auto& l, const auto& r) {
+            return l.time < r.time;
+        });
         auto selected = solutions.front();
 
         std::size_t ws_size;

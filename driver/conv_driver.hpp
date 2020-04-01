@@ -55,6 +55,7 @@
 #include <miopen/logger.hpp>
 #include <miopen/convolution.hpp>
 #include <miopen/solver.hpp>
+#include <miopen/find_controls.hpp>
 #include "random.hpp"
 #include <numeric>
 #include <sstream>
@@ -294,6 +295,13 @@ class ConvDriver : public Driver
     bool wall_enabled    = false;
     bool warmup_enabled  = false;
     int num_iterations   = 1;
+
+    // Used to avoid wasting time for verification after failure of Run*GPU().
+    // We can't properly control this from the main() level.
+    // RunBackwardGPU() and VerifyBackward() do the job for both Bwd and WrW.
+    // If RunBackwardGPU() fails, then main() doesn't know if Bwd or WrW has failed.
+    // Also main() has no ways to for controlling how Verify works except skipping the whole call.
+    bool is_fwd_run_failed = false, is_bwd_run_failed = false, is_wrw_run_failed = false;
 
     Timer wall;
     Timer2 fwd_auxiliary;
@@ -900,64 +908,75 @@ int ConvDriver<Tgpu, Tref>::AllocateBuffersAndCopy()
 
     if(warmup_enabled)
     {
-        AutoMiopenWarmupMode warmupMode;
-        size_t warmup_in_sz  = GetTensorSize(warmupInputTensor);
-        size_t warmup_wei_sz = GetTensorSize(warmupWeightTensor);
-        size_t warmup_out_sz = GetTensorSize(warmupOutputTensor);
-        if(miopen::IsEnabled(MIOPEN_DRIVER_PAD_BUFFERS_2M{}))
+        do
         {
-            PadBufferSize(warmup_wei_sz, sizeof(warmup_Tgpu));
-            PadBufferSize(warmup_out_sz, sizeof(warmup_Tgpu));
-        }
+            AutoMiopenWarmupMode warmupMode;
+            size_t warmup_in_sz  = GetTensorSize(warmupInputTensor);
+            size_t warmup_wei_sz = GetTensorSize(warmupWeightTensor);
+            size_t warmup_out_sz = GetTensorSize(warmupOutputTensor);
+            if(miopen::IsEnabled(MIOPEN_DRIVER_PAD_BUFFERS_2M{}))
+            {
+                PadBufferSize(warmup_wei_sz, sizeof(warmup_Tgpu));
+                PadBufferSize(warmup_out_sz, sizeof(warmup_Tgpu));
+            }
 
-        warmup_ws_sizeof_find = 0;
-        warmup_wall_total.resume(wall_enabled);
-        miopenStatus_t rc = miopenConvolutionForwardGetWorkSpaceSize(GetHandle(),
-                                                                     warmupWeightTensor,
-                                                                     warmupInputTensor,
-                                                                     warmupConvDesc,
-                                                                     warmupOutputTensor,
-                                                                     &warmup_ws_sizeof_find);
-        warmup_wall_total.pause(wall_enabled);
-        if(rc != miopenStatusSuccess)
-        {
-            std::cout << "Warm-up: Error getting workspace size, status = " << rc << std::endl;
-            return rc;
-        }
-        if(warmup_ws_sizeof_find != 0)
-        {
-            std::cout << "Warm-up: This step should not require workspace, but asks for "
-                      << warmup_ws_sizeof_find << std::endl;
-            return miopenStatusNotImplemented;
-        }
+            warmup_ws_sizeof_find = 0;
+            warmup_wall_total.resume(wall_enabled);
+            miopenStatus_t rc = miopenConvolutionForwardGetWorkSpaceSize(GetHandle(),
+                                                                         warmupWeightTensor,
+                                                                         warmupInputTensor,
+                                                                         warmupConvDesc,
+                                                                         warmupOutputTensor,
+                                                                         &warmup_ws_sizeof_find);
+            warmup_wall_total.pause(wall_enabled);
+            if(rc != miopenStatusSuccess)
+            {
+                std::cout << "Warm-up: Error getting workspace size, status = " << rc
+                          << ". Warm-up disabled." << std::endl;
+                warmup_enabled = false;
+                break;
+            }
+            if(warmup_ws_sizeof_find != 0)
+            {
+                std::cout << "Warm-up: This step should not require workspace, but asks for "
+                          << warmup_ws_sizeof_find << ". Warm-up disabled." << std::endl;
+                warmup_enabled = false;
+                break;
+            }
 
-        warmup_in  = tensor<warmup_Tgpu>(miopen::deref(warmupInputTensor).GetLengths());
-        warmup_wei = tensor<warmup_Tgpu>(miopen::deref(warmupWeightTensor).GetLengths());
-        warmup_out = tensor<warmup_Tgpu>(miopen::deref(warmupOutputTensor).GetLengths());
+            warmup_in  = tensor<warmup_Tgpu>(miopen::deref(warmupInputTensor).GetLengths());
+            warmup_wei = tensor<warmup_Tgpu>(miopen::deref(warmupWeightTensor).GetLengths());
+            warmup_out = tensor<warmup_Tgpu>(miopen::deref(warmupOutputTensor).GetLengths());
 
-        warmup_in_dev = std::unique_ptr<GPUMem>(new GPUMem(ctx, warmup_in_sz, sizeof(warmup_Tgpu)));
-        warmup_wei_dev =
-            std::unique_ptr<GPUMem>(new GPUMem(ctx, warmup_wei_sz, sizeof(warmup_Tgpu)));
-        warmup_out_dev =
-            std::unique_ptr<GPUMem>(new GPUMem(ctx, warmup_out_sz, sizeof(warmup_Tgpu)));
+            warmup_in_dev =
+                std::unique_ptr<GPUMem>(new GPUMem(ctx, warmup_in_sz, sizeof(warmup_Tgpu)));
+            warmup_wei_dev =
+                std::unique_ptr<GPUMem>(new GPUMem(ctx, warmup_wei_sz, sizeof(warmup_Tgpu)));
+            warmup_out_dev =
+                std::unique_ptr<GPUMem>(new GPUMem(ctx, warmup_out_sz, sizeof(warmup_Tgpu)));
 
-        status_t status = STATUS_SUCCESS;
-        status |= warmup_in_dev->ToGPU(q, warmup_in.data.data());
-        status |= warmup_wei_dev->ToGPU(q, warmup_wei.data.data());
-        status |= warmup_out_dev->ToGPU(q, warmup_out.data.data());
+            status_t status = STATUS_SUCCESS;
+            status |= warmup_in_dev->ToGPU(q, warmup_in.data.data());
+            status |= warmup_wei_dev->ToGPU(q, warmup_wei.data.data());
+            status |= warmup_out_dev->ToGPU(q, warmup_out.data.data());
 
-        if(status != STATUS_SUCCESS)
-        {
-            std::cout << "Warm-up: Error copying data to GPU, status = " << status << std::endl;
-            return miopenStatusNotInitialized;
-        }
+            if(status != STATUS_SUCCESS)
+            {
+                std::cout << "Warm-up: Error copying data to GPU, status = " << status
+                          << ". Warm-up disabled." << std::endl;
+                warmup_enabled = false;
+                break;
+            }
 
-        const int rcf = RunWarmupFindForwardGPU();
-        if(rcf != 0)
-        {
-            std::cout << "Warm-up: RunWarmupFindForwardGPU() failed" << std::endl;
-            return rcf;
-        }
+            const int rcf = RunWarmupFindForwardGPU();
+            if(rcf != 0)
+            {
+                std::cout << "Warm-up: RunWarmupFindForwardGPU() failed, rcf = " << rcf
+                          << ". Warm-up disabled." << std::endl;
+                warmup_enabled = false;
+                break;
+            }
+        } while(false);
     }
 
     if(!immediate_solution)
@@ -1271,50 +1290,105 @@ void ConvDriver<Tgpu, Tref>::PrintForwardTime(const float kernel_total_time,
     printf("GPU Kernel Time Forward Conv. Elapsed: %f ms (average)\n", kernel_average_time);
 
     const auto num_dim = miopen::deref(inputTensor).GetSize() - 2;
-    if(num_dim != 2)
+    if(num_dim != 2 && num_dim != 3)
     {
         printf("stats: <not implemented> for conv%dd\n", num_dim);
         return;
     }
 
-    int in_n, in_c, in_h, in_w;
-    std::tie(in_n, in_c, in_h, in_w) = miopen::tien<4>(miopen::deref(inputTensor).GetLengths());
-    int wei_c, wei_n, wei_h, wei_w;
-    std::tie(wei_c, wei_n, wei_h, wei_w) =
-        miopen::tien<4>(miopen::deref(weightTensor).GetLengths());
-    int out_n, out_c, out_h, out_w;
-    std::tie(out_n, out_c, out_h, out_w) =
-        miopen::tien<4>(miopen::deref(outputTensor).GetLengths());
-    size_t flopCnt = 2L * in_n * in_c * wei_h * wei_w * out_c * out_h * out_w;
-    size_t inputBytes =
-        in_n * in_c * in_h * in_w * miopen::GetTypeSize(miopen::deref(inputTensor).GetType());
-    size_t weightBytes =
-        wei_n * wei_c * wei_h * wei_w * miopen::GetTypeSize(miopen::deref(weightTensor).GetType());
-    size_t readBytes = inputBytes + weightBytes;
+    int group_count = std::max(inflags.GetValueInt("group_count"), 1);
 
-    size_t outputBytes = 1.0 * out_n * out_c * out_h * out_w *
-                         miopen::GetTypeSize(miopen::deref(outputTensor).GetType());
+    if(num_dim == 2)
+    {
+        int in_n, in_c, in_h, in_w;
+        std::tie(in_n, in_c, in_h, in_w) = miopen::tien<4>(miopen::deref(inputTensor).GetLengths());
+        int wei_c, wei_n, wei_h, wei_w;
+        std::tie(wei_c, wei_n, wei_h, wei_w) =
+            miopen::tien<4>(miopen::deref(weightTensor).GetLengths());
+        int out_n, out_c, out_h, out_w;
+        std::tie(out_n, out_c, out_h, out_w) =
+            miopen::tien<4>(miopen::deref(outputTensor).GetLengths());
 
-    printf("stats: name, n, c, ho, wo, x, y, k, flopCnt, bytesRead, bytesWritten, GFLOPs, "
-           "GB/s, timeMs\n");
-    printf("stats: %s%dx%du%d, %u, %u, %u, %u, %u, %u, %u,  %zu, %zu, %zu, %.0f, %.0f, %f\n",
-           "fwd-conv",
-           wei_h,
-           wei_w,
-           miopen::deref(convDesc).GetConvStrides()[0],
-           in_n,
-           in_c,
-           out_h,
-           out_w,
-           wei_h,
-           wei_w,
-           out_c,
-           flopCnt,
-           readBytes,
-           outputBytes,
-           flopCnt / kernel_average_time / 1e6,
-           (readBytes + outputBytes) / kernel_average_time / 1e6,
-           kernel_average_time);
+        size_t flopCnt = 2L * in_n * in_c * wei_h * wei_w * out_c * out_h * out_w / group_count;
+        size_t inputBytes =
+            in_n * in_c * in_h * in_w * miopen::GetTypeSize(miopen::deref(inputTensor).GetType());
+        size_t weightBytes = wei_n * wei_c * wei_h * wei_w *
+                             miopen::GetTypeSize(miopen::deref(weightTensor).GetType());
+        size_t readBytes = inputBytes + weightBytes;
+
+        size_t outputBytes = 1.0 * out_n * out_c * out_h * out_w *
+                             miopen::GetTypeSize(miopen::deref(outputTensor).GetType());
+
+        printf("stats: name, n, c, ho, wo, x, y, k, flopCnt, bytesRead, bytesWritten, GFLOPs, "
+               "GB/s, timeMs\n");
+        printf("stats: %s%dx%du%d, %u, %u, %u, %u, %u, %u, %u,  %zu, %zu, %zu, %.0f, %.0f, %f\n",
+               "fwd-conv",
+               wei_h,
+               wei_w,
+               miopen::deref(convDesc).GetConvStrides()[0],
+               in_n,
+               in_c,
+               out_h,
+               out_w,
+               wei_h,
+               wei_w,
+               out_c,
+               flopCnt,
+               readBytes,
+               outputBytes,
+               flopCnt / kernel_average_time / 1e6,
+               (readBytes + outputBytes) / kernel_average_time / 1e6,
+               kernel_average_time);
+    }
+    else
+    { // 3d
+        int in_n, in_c, in_d, in_h, in_w;
+        std::tie(in_n, in_c, in_d, in_h, in_w) =
+            miopen::tien<5>(miopen::deref(inputTensor).GetLengths());
+        int wei_c, wei_n, wei_d, wei_h, wei_w;
+        std::tie(wei_c, wei_n, wei_d, wei_h, wei_w) =
+            miopen::tien<5>(miopen::deref(weightTensor).GetLengths());
+        int out_n, out_c, out_d, out_h, out_w;
+        std::tie(out_n, out_c, out_d, out_h, out_w) =
+            miopen::tien<5>(miopen::deref(outputTensor).GetLengths());
+
+        size_t flopCnt = 2L * in_n * in_c * in_d * wei_h * wei_w * wei_d * out_c * out_d * out_h *
+                         out_w / group_count;
+        size_t inputBytes = in_n * in_c * in_d * in_h * in_w *
+                            miopen::GetTypeSize(miopen::deref(inputTensor).GetType());
+        size_t weightBytes = wei_n * wei_c * wei_d * wei_h * wei_w *
+                             miopen::GetTypeSize(miopen::deref(weightTensor).GetType());
+        size_t readBytes = inputBytes + weightBytes;
+
+        size_t outputBytes = 1.0 * out_n * out_c * out_d * out_h * out_w *
+                             miopen::GetTypeSize(miopen::deref(outputTensor).GetType());
+
+        printf("stats: name  , n, c, do, ho, wo, z, y, x, k, flopCnt, bytesRead, bytesWritten, "
+               "GFLOPs, "
+               "GB/s, timeMs\n");
+        printf("stats: %s%dx%dx%du%d, %u, %u, %u, %u, %u, %u, %u, %u, %u,  %zu, %zu, %zu, "
+               "%.0f, %.0f, %f\n",
+               "fwd-conv",
+               wei_d,
+               wei_h,
+               wei_w,
+               miopen::deref(convDesc).GetConvStrides()[0],
+               in_n,
+               in_c,
+               out_d,
+               out_h,
+               out_w,
+               wei_d,
+               wei_h,
+               wei_w,
+               out_c,
+               flopCnt,
+               readBytes,
+               outputBytes,
+               flopCnt / kernel_average_time / 1e6,
+               (readBytes + outputBytes) / kernel_average_time / 1e6,
+               kernel_average_time);
+    }
 }
 
 /// Always warm-ups Find API. Why: this is definitely required for Find mode.
@@ -1450,6 +1524,8 @@ int ConvDriver<Tgpu, Tref>::RunForwardGPU()
         rc = RunForwardGpuImmed(is_transform);
     else
         rc = RunForwardGpuFind(is_transform);
+
+    is_fwd_run_failed = (rc != 0);
 
     if(rc != miopenStatusSuccess)
         return rc;
@@ -1890,18 +1966,16 @@ int ConvDriver<Tgpu, Tref>::RunBackwardGPU()
 
     if(is_bwd)
     {
-        if(immediate_solution)
-            ret |= RunBackwardDataGpuImmed();
-        else
-            ret |= RunBackwardDataGpuFind();
+        auto rc = immediate_solution ? RunBackwardDataGpuImmed() : RunBackwardDataGpuFind();
+        is_bwd_run_failed = (rc != 0);
+        ret |= rc;
     }
 
     if(is_wrw)
     {
-        if(immediate_solution)
-            ret |= RunBackwardWrwGpuImmed();
-        else
-            ret |= RunBackwardWrwGpuFind();
+        auto rc           = immediate_solution ? RunBackwardWrwGpuImmed() : RunBackwardWrwGpuFind();
+        is_wrw_run_failed = (rc != 0);
+        ret |= (rc << 16); // Differentiate WrW and Bwd error codes.
     }
 
     if(inflags.GetValueInt("dump_output"))
@@ -2033,6 +2107,8 @@ void ConvDriver<Tgpu, Tref>::PrintBackwardDataTime(float kernel_total_time, floa
         return;
     }
 
+    int group_count = std::max(inflags.GetValueInt("group_count"), 1);
+
     int in_n, in_c, in_h, in_w;
     std::tie(in_n, in_c, in_h, in_w) = miopen::tien<4>(miopen::deref(inputTensor).GetLengths());
     int wei_c, wei_n, wei_h, wei_w;
@@ -2042,7 +2118,7 @@ void ConvDriver<Tgpu, Tref>::PrintBackwardDataTime(float kernel_total_time, floa
     std::tie(out_n, out_c, out_h, out_w) =
         miopen::tien<4>(miopen::deref(outputTensor).GetLengths());
 
-    size_t flopCnt = 2L * in_n * in_c * out_h * out_w * wei_h * wei_w * out_c;
+    size_t flopCnt = 2L * in_n * in_c * wei_h * wei_w * out_c * out_h * out_w / group_count;
     size_t weightBytes =
         wei_n * wei_c * wei_h * wei_w * miopen::GetTypeSize(miopen::deref(weightTensor).GetType());
     size_t inputBytes =
@@ -2179,6 +2255,8 @@ void ConvDriver<Tgpu, Tref>::PrintBackwardWrwTime(float kernel_total_time, float
         return;
     }
 
+    int group_count = std::max(inflags.GetValueInt("group_count"), 1);
+
     int in_n, in_c, in_h, in_w;
     std::tie(in_n, in_c, in_h, in_w) = miopen::tien<4>(miopen::deref(inputTensor).GetLengths());
     int wei_c, wei_n, wei_h, wei_w;
@@ -2188,7 +2266,7 @@ void ConvDriver<Tgpu, Tref>::PrintBackwardWrwTime(float kernel_total_time, float
     std::tie(out_n, out_c, out_h, out_w) =
         miopen::tien<4>(miopen::deref(outputTensor).GetLengths());
 
-    size_t flopCnt     = 2L * in_n * in_c * out_h * out_w * wei_h * wei_w * out_c;
+    size_t flopCnt     = 2L * in_n * in_c * wei_h * wei_w * out_c * out_h * out_w / group_count;
     size_t readBytes   = 0;
     size_t outputBytes = 0;
 
@@ -2691,14 +2769,14 @@ int ConvDriver<Tgpu, Tref>::VerifyForward()
     if(!is_fwd)
         return 0;
 
-    if(!TryReadVerificationCache(GetVCacheFwdOutBasename(), outputTensor, outhost.data.data()))
-    {
-        RunForwardCPU();
-    }
+    if(!is_fwd_run_failed)
+        if(!TryReadVerificationCache(GetVCacheFwdOutBasename(), outputTensor, outhost.data.data()))
+            RunForwardCPU();
 
-    auto error = miopen::rms_range(outhost.data, out.data);
-    if(data_type == miopenInt8 || data_type == miopenInt8x4)
-        error = miopen::rms_range(outhost.data, out_int8);
+    const auto isInt8 = (data_type == miopenInt8 || data_type == miopenInt8x4);
+    auto error        = is_fwd_run_failed ? std::numeric_limits<double>::max()
+                                   : (isInt8 ? miopen::rms_range(outhost.data, out_int8)
+                                             : miopen::rms_range(outhost.data, out.data));
 
     const Tref tolerance = ((sizeof(Tgpu) == 4 || sizeof(Tgpu) == 1) ? static_cast<Tref>(1e-6)
                                                                      : static_cast<Tref>(7e-2));
@@ -2728,12 +2806,13 @@ int ConvDriver<Tgpu, Tref>::VerifyBackward()
     int cumulative_rc = 0;
     if(is_bwd)
     {
-        if(!TryReadVerificationCache(GetVCacheBwdDataBasename(), inputTensor, din_host.data.data()))
-        {
-            RunBackwardDataCPU();
-        }
+        if(!is_bwd_run_failed)
+            if(!TryReadVerificationCache(
+                   GetVCacheBwdDataBasename(), inputTensor, din_host.data.data()))
+                RunBackwardDataCPU();
 
-        auto error_data = miopen::rms_range(din_host.data, din);
+        auto error_data = is_bwd_run_failed ? std::numeric_limits<double>::max()
+                                            : miopen::rms_range(din_host.data, din);
 
         if(!(error_data < tolerance))
         {
@@ -2749,11 +2828,10 @@ int ConvDriver<Tgpu, Tref>::VerifyBackward()
 
     if(is_wrw)
     {
-        if(!TryReadVerificationCache(
-               GetVCacheBwdWeightBasename(), weightTensor, dwei_host.data.data()))
-        {
-            RunBackwardWeightsCPU();
-        }
+        if(!is_wrw_run_failed)
+            if(!TryReadVerificationCache(
+                   GetVCacheBwdWeightBasename(), weightTensor, dwei_host.data.data()))
+                RunBackwardWeightsCPU();
 
         // Winograd algorithm has worse precision than Direct and Gemm.
         // Winograd-specific precision loss is roughly 2+2 bits.
@@ -2762,7 +2840,9 @@ int ConvDriver<Tgpu, Tref>::VerifyBackward()
         if(is_wrw_winograd && std::is_same<Tgpu, float>::value)
             tolerance_wrw *= 16.0;
 
-        auto error_weights = miopen::rms_range(dwei_host.data, dwei);
+        auto error_weights = is_wrw_run_failed ? std::numeric_limits<double>::max()
+                                               : miopen::rms_range(dwei_host.data, dwei);
+
         if(!(error_weights < tolerance_wrw))
         {
             std::cout << "Backward Convolution Weights Failed: " << error_weights << std::endl;

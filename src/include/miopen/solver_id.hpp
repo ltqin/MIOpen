@@ -28,7 +28,6 @@
 #define MIOPEN_GUARD_MLOPEN_SOLVER_ID_HPP
 
 #include <miopen/logger.hpp>
-#include <miopen/any_solver.hpp>
 #include <miopen/conv_algo_name.hpp>
 
 #include <cstdint>
@@ -36,6 +35,8 @@
 
 namespace miopen {
 namespace solver {
+
+struct AnySolver;
 
 struct Id
 {
@@ -48,7 +49,7 @@ struct Id
 
     std::string ToString() const;
     AnySolver GetSolver() const;
-    std::string GetAlgo(miopenConvDirection_t dir) const;
+    std::string GetAlgo(conv::Direction dir) const;
 
     bool IsValid() const { return is_valid; }
     uint64_t Value() const { return value; }

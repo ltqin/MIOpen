@@ -26,6 +26,8 @@
 include(CMakeParseArguments)
 include(Analyzers)
 
+get_filename_component(CLANG_TIDY_EXE_HINT "${CMAKE_CXX_COMPILER}" PATH)
+
 find_program(CLANG_TIDY_EXE 
     NAMES 
         clang-tidy
@@ -36,9 +38,12 @@ find_program(CLANG_TIDY_EXE
         clang-tidy-3.7
         clang-tidy-3.6
         clang-tidy-3.5
+    HINTS
+        ${CLANG_TIDY_EXE_HINT}
     PATH_SUFFIXES
         compiler/bin
     PATHS
+        /opt/rocm/llvm/bin
         /opt/rocm/hcc
         /usr/local/opt/llvm/bin
 )

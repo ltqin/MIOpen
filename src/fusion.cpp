@@ -222,55 +222,51 @@ bool ConvForwardOpDescriptor::GetOpAttr(const std::string& sym, int& val) const
     if(sym == "x")
     {
         val = x;
-        return true;
     }
     else if(sym == "y")
     {
         val = y;
-        return true;
     }
     else if(sym == "c")
     {
         val = c;
-        return true;
     }
     else if(sym == "pad_h")
     {
         val = base_desc.GetConvPads()[0];
-        return true;
     }
     else if(sym == "pad_w")
     {
         val = base_desc.GetConvPads()[1];
-        return true;
     }
     else if(sym == "dilation_h")
     {
         val = base_desc.GetConvDilations()[0];
-        return true;
     }
     else if(sym == "dilation_w")
     {
         val = base_desc.GetConvDilations()[1];
-        return true;
     }
     else if(sym == "stride_h")
     {
         val = base_desc.GetConvStrides()[0];
-        return true;
     }
     else if(sym == "stride_w")
     {
         val = base_desc.GetConvStrides()[1];
-        return true;
     }
     else if(sym == "k")
     {
         val = o;
-        return true;
+    }
+    else if(sym == "group_count")
+    {
+        val = base_desc.GetGroupCount();
     }
     else
         return false;
+
+    return true;
 }
 
 OpKernelArg ConvForwardOpDescriptor::GetOpAttr(const std::string& k) const
@@ -453,8 +449,8 @@ miopenStatus_t ActivBwdFusionOpDescriptor::GetOutputDesc(TensorDescriptor& outpu
 //==============================
 
 miopenStatus_t BatchNormInferenceFusionOpDescriptor::SetArgs(OperatorArgs& args,
-                                                             const void* alpha,
-                                                             const void* beta,
+                                                             const void*,
+                                                             const void*,
                                                              ConstData_t bnScale,
                                                              ConstData_t bnBias,
                                                              ConstData_t estimatedMean,
@@ -462,8 +458,6 @@ miopenStatus_t BatchNormInferenceFusionOpDescriptor::SetArgs(OperatorArgs& args,
                                                              double epsilon)
 {
     auto id                    = std::to_string(GetIdx());
-    auto alpha_any             = OpKernelArg(*(static_cast<const float*>(alpha)));
-    auto beta_any              = OpKernelArg(*(static_cast<const float*>(beta)));
     auto bnScale_any           = OpKernelArg(bnScale);
     auto bnBias_any            = OpKernelArg(bnBias);
     auto estimatedMean_any     = OpKernelArg(estimatedMean);
@@ -1235,9 +1229,9 @@ std::vector<Exec_arg_t> FusionPlanDescriptor::CalcArgOrder(Handle& handle)
 }
 
 miopenStatus_t FusionPlanDescriptor::Execute(Handle& handle,
-                                             TensorDescriptor& inputDesc,
+                                             const TensorDescriptor& inputDesc,
                                              ConstData_t input,
-                                             TensorDescriptor& outputDesc,
+                                             const TensorDescriptor& outputDesc,
                                              Data_t output,
                                              const OperatorArgs& op_args)
 {

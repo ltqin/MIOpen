@@ -40,8 +40,6 @@
 #include <string>
 #include <vector>
 
-MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_AMD_OPENCL_ENFORCE_COV3)
-
 namespace miopen {
 
 void ParseDevName(std::string& name)
@@ -190,23 +188,26 @@ ClProgramPtr LoadProgram(cl_context ctx,
 #endif
 #endif
         params += " -cl-std=CL1.2";
-        if(miopen::IsEnabled(MIOPEN_DEBUG_AMD_OPENCL_ENFORCE_COV3{}))
-        {
-            /// \todo Seems not working with ROCm 2.6
-            params += " -Wf,-Xclang,-target-feature,-Xclang,+code-object-v3";
-        }
         BuildProgram(result.get(), device, params);
         return result;
     }
 }
 
-void SaveProgramBinary(const ClProgramPtr& program, const std::string& name)
+void GetProgramBinary(const ClProgramPtr& program, std::string& binary)
 {
     size_t binary_size;
     clGetProgramInfo(program.get(), CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binary_size, nullptr);
-    std::vector<char> binary(binary_size);
-    char* src[1] = {binary.data()};
-    clGetProgramInfo(program.get(), CL_PROGRAM_BINARIES, sizeof(src), &src, nullptr);
+    binary.resize(binary_size);
+    char* src[1] = {&binary[0]};
+    if(clGetProgramInfo(program.get(), CL_PROGRAM_BINARIES, sizeof(src), &src, nullptr) !=
+       CL_SUCCESS)
+        MIOPEN_THROW(miopenStatusInternalError, "Could not extract binary from program");
+}
+
+void SaveProgramBinary(const ClProgramPtr& program, const std::string& name)
+{
+    std::string binary;
+    GetProgramBinary(program, binary);
     std::ofstream fout(name.c_str(), std::ios::out | std::ios::binary);
     fout.write(binary.data(), binary.size());
 }

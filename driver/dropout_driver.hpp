@@ -146,7 +146,8 @@ int DropoutDriver<Tgpu, Tref>::GetandSetData()
 template <typename Tgpu, typename Tref>
 int DropoutDriver<Tgpu, Tref>::AddCmdLineArgs()
 {
-    inflags.AddInputFlag("forw", 'F', "1", "Run only Forward Dropout == 1 (Default=1)", "int");
+    inflags.AddInputFlag(
+        "forw", 'F', "0", "Direction, Forward = 1, Backward = 2 , Both = 0 (Default=0)", "int");
     inflags.AddInputFlag(
         "input_dim", 'd', "4", "Input dimension (Default=4, support up to 5D)", "vector");
     inflags.AddInputFlag("dropout", 'p', "0.5", "Dropout rate (Default=0.5)", "float");
@@ -449,7 +450,7 @@ int DropoutDriver<Tgpu, Tref>::VerifyForward()
 
     auto error = miopen::rms_range(outhost.data, out.data);
 
-    const double tolerance = 1e-6;
+    const double tolerance = std::is_same<Tgpu, float16>{} ? 5e-4 : 1e-6;
     if(!(error < tolerance))
     {
         std::cout << "Forward Dropout Failed: " << error << std::endl;
@@ -469,7 +470,7 @@ int DropoutDriver<Tgpu, Tref>::VerifyBackward()
 
     auto error = miopen::rms_range(din_host.data, din.data);
 
-    const double tolerance = 1e-6;
+    const double tolerance = std::is_same<Tgpu, float16>{} ? 5e-4 : 1e-6;
     if(!(error < tolerance))
     {
         std::cout << "Backward Dropout Failed: " << error << std::endl;

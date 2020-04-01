@@ -38,17 +38,28 @@
 #include "rnn_driver.hpp"
 #include "ctc_driver.hpp"
 #include "dropout_driver.hpp"
+#include "tensorop_driver.hpp"
 #include "miopen/config.h"
 
 int main(int argc, char* argv[])
 {
+
+    std::string base_arg = ParseBaseArg(argc, argv);
+
+    if(base_arg == "--version")
+    {
+        size_t major, minor, patch;
+        miopenGetVersion(&major, &minor, &patch);
+        std::cout << "MIOpen (version: " << major << "." << minor << "." << patch << ")"
+                  << std::endl;
+        exit(0);
+    }
+
     // show command
-    std::cout << "MIOpenDriver:";
+    std::cout << "MIOpenDriver";
     for(int i = 1; i < argc; i++)
         std::cout << " " << argv[i];
     std::cout << std::endl;
-
-    std::string base_arg = ParseBaseArg(argc, argv);
 
     Driver* drv;
     if(base_arg == "conv")
@@ -146,6 +157,14 @@ int main(int argc, char* argv[])
     {
         drv = new DropoutDriver<float16, float>();
     }
+    else if(base_arg == "tensorop")
+    {
+        drv = new TensorOpDriver<float, float>();
+    }
+    else if(base_arg == "tensoropfp16")
+    {
+        drv = new TensorOpDriver<float16, float>();
+    }
     else
     {
         printf("Incorrect BaseArg\n");
@@ -179,10 +198,8 @@ int main(int argc, char* argv[])
         rc = drv->RunForwardGPU();
         cumulative_rc |= rc;
         if(rc != 0)
-        {
-            std::cout << "RunForwardGPU() failed, rc = " << rc << std::endl;
-            return rc;
-        }
+            std::cout << "RunForwardGPU() failed, rc = "
+                      << "0x" << std::hex << rc << std::dec << std::endl;
         if(verifyarg) // Verify even if Run() failed.
             cumulative_rc |= drv->VerifyForward();
     }
@@ -192,10 +209,8 @@ int main(int argc, char* argv[])
         rc = drv->RunBackwardGPU();
         cumulative_rc |= rc;
         if(rc != 0)
-        {
-            std::cout << "RunBackwardGPU() failed, rc = " << rc << std::endl;
-            return rc;
-        }
+            std::cout << "RunBackwardGPU() failed, rc = "
+                      << "0x" << std::hex << rc << std::dec << std::endl;
         if(verifyarg) // Verify even if Run() failed.
             cumulative_rc |= drv->VerifyBackward();
     }

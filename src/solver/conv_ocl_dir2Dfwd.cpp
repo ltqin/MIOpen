@@ -28,6 +28,7 @@
 #include <miopen/legacy_exhaustive_search.hpp>
 #include <miopen/solver.hpp>
 #include <miopen/env.hpp>
+#include <miopen/conv/invokers/gen_x_w_y_pad.hpp>
 
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_CONV_DIRECT_OCL_FWD)
 
@@ -37,6 +38,8 @@ namespace solver {
 bool ConvOclDirectFwd::IsApplicable(const ConvolutionContext& params) const
 {
     if(miopen::IsDisabled(MIOPEN_DEBUG_CONV_DIRECT_OCL_FWD{}))
+        return false;
+    if(!params.use_opencl_convolutions)
         return false;
     if(!params.Is2d())
         return false;
@@ -451,6 +454,10 @@ inline ConvSolution BaseGetSolution(const ConvolutionContext& params,
     kernel_params.kernel_name = "MIOpenConvUni";
 
     result.construction_params.push_back(kernel_params);
+    result.invoker_factory = &conv::MakeGenericXWYPadInvoker;
+
+    if(params.direction.IsForward())
+        result.invoker_factory = &conv::MakeGenericXWYPadInvoker;
 
     return result;
 }

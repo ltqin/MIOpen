@@ -25,6 +25,8 @@
  *******************************************************************************/
 
 #include <miopen/solver.hpp>
+
+#include <miopen/conv/invokers/ocl_wrw_rdc.hpp>
 #include <miopen/stringutils.hpp>
 #include <miopen/env.hpp>
 
@@ -41,6 +43,8 @@ static bool WorkaroundSwdev168168() { return true; }
 bool ConvOclBwdWrW53::IsApplicable(const ConvolutionContext& params) const
 {
     if(miopen::IsDisabled(MIOPEN_DEBUG_CONV_DIRECT_OCL_WRW53{}))
+        return false;
+    if(!params.use_opencl_convolutions)
         return false;
     if(!params.Is2d())
         return false;
@@ -596,7 +600,11 @@ ConvSolution ConvOclBwdWrW53::GetSolution(const ConvolutionContext& params) cons
 
         result.construction_params.push_back(kernel);
     }
-    result.workspce_sz = GetWorkspaceSize(params);
+
+    const auto ws_sz       = GetWorkspaceSize(params);
+    result.workspce_sz     = ws_sz;
+    result.invoker_factory = conv::MakeOclWrWRdcInvokerFactory(n_batch_blks > 1, ws_sz);
+
     return result;
 }
 } // namespace solver

@@ -30,6 +30,7 @@
 #include <miopen/miopen.h>
 #include <miopen/fusion_ops.hpp>
 #include <miopen/fusion.hpp>
+#include <miopen/any_solver.hpp>
 
 #include <unordered_map>
 
@@ -73,7 +74,7 @@ struct MDGraph_vertex
     int id;
 
     MDGraph_vertex(const MDGraph_vertex& other) = delete;
-    std::string& operator[](std::string& x) { return vertex_data[x]; }
+    std::string& operator[](const std::string& x) { return vertex_data[x]; }
     std::vector<DefaultKernelArg> default_args;
 
     solver::AnySolver solver;

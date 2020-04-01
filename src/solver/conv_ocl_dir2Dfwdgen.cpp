@@ -27,6 +27,7 @@
 #include <miopen/solver.hpp>
 #include <miopen/handle.hpp>
 #include <miopen/env.hpp>
+#include <miopen/conv/invokers/gen_x_w_y_pad.hpp>
 
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_CONV_DIRECT_OCL_FWDGEN)
 
@@ -36,6 +37,8 @@ namespace solver {
 bool ConvOclDirectFwdGen::IsApplicable(const ConvolutionContext& params) const
 {
     if(miopen::IsDisabled(MIOPEN_DEBUG_CONV_DIRECT_OCL_FWDGEN{}))
+        return false;
+    if(!params.use_opencl_convolutions)
         return false;
     if(!params.Is2d())
         return false;
@@ -65,7 +68,7 @@ bool ConvOclDirectFwdGen::IsApplicable(const ConvolutionContext& params) const
         if(!supported)
             return false;
     }
-    
+
     { // Workaround for issue 1681
         if(params.IsFp32() && params.n_inputs > 3)
             return false;
@@ -284,6 +287,7 @@ ConvSolution ConvOclDirectFwdGen::GetSolution(const ConvolutionContext& params) 
 
     ConvSolution result;
     result.construction_params.push_back(construction_params);
+    result.invoker_factory = &conv::MakeGenericXWYPadInvoker;
     return result;
 }
 } // namespace solver

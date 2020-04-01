@@ -26,10 +26,13 @@
 
 #include <miopen/solver.hpp>
 
+#include <miopen/conv/invokers/ocl_wrw_rdc.hpp>
 #include <miopen/env.hpp>
 #include <miopen/generic_search.hpp>
 #include <miopen/bfloat16.hpp>
 #include <miopen/mlo_utils.hpp>
+#include <miopen/visit_float.hpp>
+
 #include <algorithm>
 
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_CONV_DIRECT_OCL_WRW2_SEARCH_OPTIMIZED)
@@ -465,6 +468,8 @@ bool ConvOclBwdWrW2<N_BATCH_LOOPS>::IsApplicableBase(const ConvolutionContext& p
 {
     if(miopen::IsDisabled(MIOPEN_DEBUG_CONV_DIRECT_OCL_WRW2{}))
         return false;
+    if(!params.use_opencl_convolutions)
+        return false;
     if(!params.Is2d())
         return false;
     if(!(params.IsFp32() || params.IsFp16() || params.IsBfp16()))
@@ -730,7 +735,10 @@ ConvSolution ConvOclBwdWrW2<N_BATCH_LOOPS>::GetSolution(
         kernel.g_wk.push_back(1);
         result.construction_params.push_back(kernel);
     }
-    result.workspce_sz = GetWorkspaceSize(params);
+
+    const auto ws_sz       = GetWorkspaceSize(params);
+    result.workspce_sz     = ws_sz;
+    result.invoker_factory = conv::MakeOclWrWRdcInvokerFactory(n_batch_blks > 1, ws_sz);
 
     return result;
 }
@@ -775,8 +783,9 @@ int ConvOclBwdWrW2<N_BATCH_LOOPS>::RunAndMeasureSolutionImpl(miopen::Handle& pro
         elapsed_time = profile_h.GetKernelTime();
     }
 #ifdef NDEBUG
-    catch(miopen::Exception&)
+    catch(miopen::Exception& ex)
     {
+        MIOPEN_LOG_WE(ex.what());
         return -1;
     }
 #endif

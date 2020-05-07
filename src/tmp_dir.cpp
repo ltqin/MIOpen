@@ -59,7 +59,7 @@ void TmpDir::Execute(std::string exe, std::string args)
 {
     if(miopen::IsEnabled(MIOPEN_DEBUG_SAVE_TEMP_DIR{}))
     {
-        MIOPEN_LOG_I2(this->path.string());
+        std::cout << "tmp_dir: " << this->path.string() << std::endl;
     }
     std::string cd  = "cd " + this->path.string() + "; ";
     std::string cmd = cd + exe + " " + args; // + " > /dev/null";

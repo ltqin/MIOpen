@@ -206,13 +206,19 @@ static std::string to_string(const amd_comgr_action_kind_t val)
     return oss.str();
 }
 
-static bool PrintVersion()
+static bool PrintVersionImpl()
 {
     std::size_t major = 0;
     std::size_t minor = 0;
     (void)amd_comgr_get_version(&major, &minor);
     MIOPEN_LOG_NQI("comgr v." << major << '.' << minor);
     return true;
+}
+
+static void PrintVersion()
+{
+    static const auto once = PrintVersionImpl();
+    std::ignore            = once;
 }
 
 static std::string GetStatusText(const amd_comgr_status_t status)
@@ -456,24 +462,87 @@ static std::string GetLog(const Dataset& dataset, const bool comgr_error_handlin
     return text;
 }
 
+static void SetIsaName(const ActionInfo& action, const std::string& device)
+{
+    // This can't be implemented in ActionInfo because
+    // comgr wrappers should not depend on compiler implementation.
+    const auto isaName = compiler::lc::GetIsaName(device);
+    MIOPEN_LOG_I2(isaName);
+    action.SetIsaName(isaName);
+}
+
+void BuildHip(const std::string& name,
+              const std::string& text,
+              const std::string& options,
+              const std::string& device,
+              std::vector<char>& binary)
+{
+    PrintVersion();
+    try
+    {
+        const Dataset inputs;
+        inputs.AddData(name, text, AMD_COMGR_DATA_KIND_SOURCE);
+        const ActionInfo action;
+        action.SetLanguage(AMD_COMGR_LANGUAGE_HIP);
+        SetIsaName(action, device);
+        action.SetLogging(true);
+
+        auto optCompile = SplitSpaceSeparated(options);
+        compiler::lc::RemoveSuperfluousOptions(optCompile);
+        action.SetOptionList(optCompile);
+
+        const Dataset compiledBc;
+        action.Do(AMD_COMGR_ACTION_COMPILE_SOURCE_TO_BC, inputs, compiledBc);
+
+        OptionList optLink;
+        optLink.push_back("wavefrontsize64");
+        optLink.push_back("daz_opt");     // Assume that it's ok to flush denormals to zero.
+        optLink.push_back("finite_only"); // No need to handle INF correcly.
+        optLink.push_back("unsafe_math"); // Prefer speed over correctness for FP math.
+
+        action.SetOptionList(optLink);
+        const Dataset addedDevLibs;
+        action.Do(AMD_COMGR_ACTION_ADD_DEVICE_LIBRARIES, compiledBc, addedDevLibs);
+        const Dataset linkedBc;
+        action.Do(AMD_COMGR_ACTION_LINK_BC_TO_BC, addedDevLibs, linkedBc);
+
+        action.SetOptionList(optCompile);
+        const Dataset relocatable;
+        action.Do(AMD_COMGR_ACTION_CODEGEN_BC_TO_RELOCATABLE, linkedBc, relocatable);
+
+        action.SetOptionList(OptionList());
+        const Dataset exe;
+        action.Do(AMD_COMGR_ACTION_LINK_RELOCATABLE_TO_EXECUTABLE, relocatable, exe);
+
+        constexpr auto INTENTIONALY_UNKNOWN = static_cast<amd_comgr_status_t>(0xffff);
+        if(exe.GetDataCount(AMD_COMGR_DATA_KIND_EXECUTABLE) < 1)
+            throw ComgrError{INTENTIONALY_UNKNOWN, "Executable binary not found"};
+        // Assume that the first exec data contains the binary we need.
+        const auto data = exe.GetData(AMD_COMGR_DATA_KIND_EXECUTABLE, 0);
+        data.GetBytes(binary);
+    }
+    catch(ComgrError& ex)
+    {
+        MIOPEN_LOG_E("comgr status = " << GetStatusText(ex.status));
+        if(!ex.text.empty())
+            MIOPEN_LOG_W(ex.text);
+    }
+}
+
 void BuildOcl(const std::string& name,
               const std::string& text,
               const std::string& options,
               const std::string& device,
               std::vector<char>& binary)
 {
-    static const auto once = PrintVersion(); // Nice to see in the user's logs.
-    std::ignore            = once;
-
+    PrintVersion(); // Nice to see in the user's logs.
     try
     {
         const Dataset inputs;
         inputs.AddData(name, text, AMD_COMGR_DATA_KIND_SOURCE);
         const ActionInfo action;
         action.SetLanguage(AMD_COMGR_LANGUAGE_OPENCL_2_0);
-        const auto isaName = compiler::lc::GetIsaName(device);
-        MIOPEN_LOG_I2(isaName);
-        action.SetIsaName(isaName);
+        SetIsaName(action, device);
         action.SetLogging(true);
 
         auto optCompile = SplitSpaceSeparated(options);

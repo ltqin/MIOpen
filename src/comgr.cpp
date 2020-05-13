@@ -26,6 +26,7 @@
 
 #include <miopen/env.hpp>
 #include <miopen/errors.hpp>
+#include <miopen/kernel.hpp>
 #include <miopen/logger.hpp>
 #include <miopen/stringutils.hpp>
 #include <amd_comgr.h>
@@ -355,7 +356,7 @@ class Dataset : ComgrOwner
         AddData(d);
         const auto show_first = miopen::Value(MIOPEN_DEBUG_COMGR_LOG_SOURCE_TEXT{}, 0);
         if(show_first > 0 && miopen::IsLogging(miopen::LoggingLevel::Info) &&
-           type == AMD_COMGR_DATA_KIND_SOURCE)
+           (type == AMD_COMGR_DATA_KIND_SOURCE || type == AMD_COMGR_DATA_KIND_INCLUDE))
         {
             const auto text_length = (content.size() > show_first) ? show_first : content.size();
             const std::string text(content, 0, text_length);
@@ -482,6 +483,16 @@ void BuildHip(const std::string& name,
     {
         const Dataset inputs;
         inputs.AddData(name, text, AMD_COMGR_DATA_KIND_SOURCE);
+
+        // For OCL and ASM sources, we do insert contents of include
+        // files directly into the source text during library build phase by means
+        // of the addkernels tool. We don't do that for HIP sources, and, therefore
+        // have to export include files prior compilation.
+        // Note that we do not need any "subdirs" in the include "pathnames" so far.
+        const auto inc_names = miopen::GetHipKernelIncList();
+        for(const auto& inc : inc_names)
+            inputs.AddData(inc, miopen::GetKernelInc(inc), AMD_COMGR_DATA_KIND_INCLUDE);
+
         const ActionInfo action;
         action.SetLanguage(AMD_COMGR_LANGUAGE_HIP);
         SetIsaName(action, device);

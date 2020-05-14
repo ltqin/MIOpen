@@ -24,6 +24,7 @@
  *
  *******************************************************************************/
 
+#include <miopen/algorithm.hpp>
 #include <miopen/env.hpp>
 #include <miopen/errors.hpp>
 #include <miopen/kernel.hpp>
@@ -39,12 +40,18 @@
 
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMGR_LOG_CALLS)
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMGR_LOG_OPTIONS)
+
 /// Integer, set to max number of first characters
 /// you would like to log onto console.
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMGR_LOG_SOURCE_TEXT)
 
+/// \todo Temporary for debugging
+MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMGR_COMPILER_OPTIONS_INSERT)
+
 /// \todo see issue #1222, PR #1316
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_SRAM_EDC_DISABLED)
+
+#define TEMP_HIP_BUILD_FATBIN 0
 
 #define COMPILER_LC 1
 
@@ -116,12 +123,35 @@ static void AddOcl20CompilerOptions(OptionList& list)
 /// (or even can be harmful) for building via comgr layer.
 ///
 /// \todo Produce proper options in, er, proper places, and get rid of this.
-static void RemoveSuperfluousOptions(OptionList& list)
+static void RemoveOclSuperfluousOptions(OptionList& list)
 {
     list.erase(remove_if(list.begin(),
                          list.end(),
                          [&](const auto& option) { return StartsWith(option, "-mcpu="); }),
                list.end());
+}
+
+static bool IsHipLinkerOption(const std::string& option)
+{
+    return miopen::StartsWith(option, "-L") || miopen::StartsWith(option, "-Wl,") ||
+           option == "-ldl" || option == "-lm";
+}
+
+static void RemoveHipSuperfluousOptions(OptionList& list)
+{
+    list.erase(remove_if(list.begin(),
+                         list.end(),
+                         [&](const auto& option) {
+                             return miopen::StartsWith(option, "-mcpu=") || (option == "-hc") ||
+                                    IsHipLinkerOption(option);
+                         }),
+               list.end());
+}
+
+static auto GetHipOptionsNoSplit()
+{
+    static const std::vector<std::string> rv = {"-isystem", "-L", "-Wl,-rpath", "-Xclang"};
+    return rv;
 }
 
 /// \todo Get list of supported isa names from comgr and select.
@@ -232,12 +262,19 @@ static std::string GetStatusText(const amd_comgr_status_t status)
 
 static void LogOptions(const char* options[], size_t count)
 {
-    if(miopen::IsEnabled(MIOPEN_DEBUG_COMGR_LOG_OPTIONS{}) &&
-       miopen::IsLogging(miopen::LoggingLevel::Info))
+    static const auto control = miopen::Value(MIOPEN_DEBUG_COMGR_LOG_OPTIONS{}, 0);
+    if(!(control != 0 && miopen::IsLogging(miopen::LoggingLevel::Info)))
+        return;
+    if(control == 2)
+    {
+        for(std::size_t i = 0; i < count; ++i)
+            MIOPEN_LOG_I(options[i]);
+    }
+    else
     {
         std::ostringstream oss;
         for(std::size_t i = 0; i < count; ++i)
-            oss << options[i] << '\t';
+            oss << options[i] << ' ';
         MIOPEN_LOG_I(oss.str());
     }
 }
@@ -489,8 +526,8 @@ void BuildHip(const std::string& name,
         // of the addkernels tool. We don't do that for HIP sources, and, therefore
         // have to export include files prior compilation.
         // Note that we do not need any "subdirs" in the include "pathnames" so far.
-        const auto inc_names = miopen::GetHipKernelIncList();
-        for(const auto& inc : inc_names)
+        const auto incNames = miopen::GetHipKernelIncList();
+        for(const auto& inc : incNames)
             inputs.AddData(inc, miopen::GetKernelInc(inc), AMD_COMGR_DATA_KIND_INCLUDE);
 
         const ActionInfo action;
@@ -498,8 +535,31 @@ void BuildHip(const std::string& name,
         SetIsaName(action, device);
         action.SetLogging(true);
 
-        auto optCompile = SplitSpaceSeparated(options);
-        compiler::lc::RemoveSuperfluousOptions(optCompile);
+#if TEMP_HIP_BUILD_FATBIN
+        auto raw = options + " " + MIOPEN_STRINGIZE(HIP_COMPILER_FLAGS); // FIXME
+        {
+            const auto p_asciz = miopen::GetStringEnv(MIOPEN_DEBUG_COMGR_COMPILER_OPTIONS_INSERT{});
+            if(p_asciz != nullptr)
+                raw += (std::string(" ") + p_asciz);
+        }
+        auto optCompile = miopen::SplitSpaceSeparated(raw, compiler::lc::GetHipOptionsNoSplit());
+        action.SetOptionList(optCompile);
+
+        const Dataset exe;
+        action.Do(AMD_COMGR_ACTION_COMPILE_SOURCE_TO_FATBIN, inputs, exe);
+#else
+        auto raw = options +
+                   " -isystem /usr/include -isystem /opt/rocm/hcc/lib/clang/10.0.0/include " +
+                   MIOPEN_STRINGIZE(HIP_COMPILER_FLAGS); // FIXME
+        {
+            const auto p_asciz = miopen::GetStringEnv(MIOPEN_DEBUG_COMGR_COMPILER_OPTIONS_INSERT{});
+            if(p_asciz != nullptr)
+                raw += (std::string(" ") + p_asciz);
+        }
+        auto optCompile = miopen::SplitSpaceSeparated(raw, compiler::lc::GetHipOptionsNoSplit());
+
+        // FIXME Removes also linker options
+        compiler::lc::RemoveHipSuperfluousOptions(optCompile);
         action.SetOptionList(optCompile);
 
         const Dataset compiledBc;
@@ -524,6 +584,7 @@ void BuildHip(const std::string& name,
         action.SetOptionList(OptionList());
         const Dataset exe;
         action.Do(AMD_COMGR_ACTION_LINK_RELOCATABLE_TO_EXECUTABLE, relocatable, exe);
+#endif
 
         constexpr auto INTENTIONALY_UNKNOWN = static_cast<amd_comgr_status_t>(0xffff);
         if(exe.GetDataCount(AMD_COMGR_DATA_KIND_EXECUTABLE) < 1)
@@ -556,8 +617,8 @@ void BuildOcl(const std::string& name,
         SetIsaName(action, device);
         action.SetLogging(true);
 
-        auto optCompile = SplitSpaceSeparated(options);
-        compiler::lc::RemoveSuperfluousOptions(optCompile);
+        auto optCompile = miopen::SplitSpaceSeparated(options);
+        compiler::lc::RemoveOclSuperfluousOptions(optCompile);
         compiler::lc::AddOcl20CompilerOptions(optCompile);
         action.SetOptionList(optCompile);
 

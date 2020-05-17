@@ -87,7 +87,7 @@ def buildJob(compiler, flags, image, prefixpath="/opt/rocm", cmd = ""){
         }
 
         withDockerContainer(image: image, args: dockerOpts + ' -v=/var/jenkins/:/var/jenkins') {
-            timeout(time: 5, unit: 'HOURS')
+            timeout(time: 24, unit: 'HOURS')
             {
                 if(cmd == ""){
                     cmake_build(compiler, flags, prefixpath)

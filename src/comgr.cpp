@@ -45,13 +45,13 @@ MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMGR_LOG_OPTIONS)
 /// you would like to log onto console.
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMGR_LOG_SOURCE_TEXT)
 
-/// \todo Temporary for debugging
+/// \todo Temporary for debugging:
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMGR_COMPILER_OPTIONS_INSERT)
+/// \todo Temporary for debugging:
+MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_COMGR_HIP_BUILD_FATBIN)
 
 /// \todo see issue #1222, PR #1316
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_SRAM_EDC_DISABLED)
-
-#define TEMP_HIP_BUILD_FATBIN 0
 
 #define COMPILER_LC 1
 
@@ -143,14 +143,16 @@ static void RemoveHipSuperfluousOptions(OptionList& list)
                          list.end(),
                          [&](const auto& option) {
                              return miopen::StartsWith(option, "-mcpu=") || (option == "-hc") ||
-                                    IsHipLinkerOption(option);
+                                    (!miopen::IsEnabled(MIOPEN_DEBUG_COMGR_HIP_BUILD_FATBIN{}) &&
+                                     IsHipLinkerOption(option));
                          }),
                list.end());
 }
 
 static auto GetHipOptionsNoSplit()
 {
-    static const std::vector<std::string> rv = {"-isystem", "-L", "-Wl,-rpath", "-Xclang"};
+    static const std::vector<std::string> rv = {
+        "-isystem", "-L", "-Wl,-rpath", "-Xclang", "-hip-path"};
     return rv;
 }
 
@@ -509,6 +511,14 @@ static void SetIsaName(const ActionInfo& action, const std::string& device)
     action.SetIsaName(isaName);
 }
 
+static std::string GetDebugCompilerOptionsInsert()
+{
+    const char* p = miopen::GetStringEnv(MIOPEN_DEBUG_COMGR_COMPILER_OPTIONS_INSERT{});
+    if(p == nullptr)
+        p = "";
+    return {p};
+}
+
 void BuildHip(const std::string& name,
               const std::string& text,
               const std::string& options,
@@ -535,56 +545,55 @@ void BuildHip(const std::string& name,
         SetIsaName(action, device);
         action.SetLogging(true);
 
-#if TEMP_HIP_BUILD_FATBIN
-        auto raw = options + " " + MIOPEN_STRINGIZE(HIP_COMPILER_FLAGS); // FIXME
-        {
-            const auto p_asciz = miopen::GetStringEnv(MIOPEN_DEBUG_COMGR_COMPILER_OPTIONS_INSERT{});
-            if(p_asciz != nullptr)
-                raw += (std::string(" ") + p_asciz);
-        }
-        auto optCompile = miopen::SplitSpaceSeparated(raw, compiler::lc::GetHipOptionsNoSplit());
-        action.SetOptionList(optCompile);
-
         const Dataset exe;
-        action.Do(AMD_COMGR_ACTION_COMPILE_SOURCE_TO_FATBIN, inputs, exe);
-#else
-        auto raw = options +
-                   " -isystem /usr/include -isystem /opt/rocm/hcc/lib/clang/10.0.0/include " +
-                   MIOPEN_STRINGIZE(HIP_COMPILER_FLAGS); // FIXME
+        if(miopen::IsEnabled(MIOPEN_DEBUG_COMGR_HIP_BUILD_FATBIN{}))
         {
-            const auto p_asciz = miopen::GetStringEnv(MIOPEN_DEBUG_COMGR_COMPILER_OPTIONS_INSERT{});
-            if(p_asciz != nullptr)
-                raw += (std::string(" ") + p_asciz);
+            auto raw = std::string("--amdgpu-target=gfx906 -hip-path /opt/rocm/hip") // FIXME
+                       + " " + options                                               //
+                       + " " + GetDebugCompilerOptionsInsert()                       //
+                       + " " + MIOPEN_STRINGIZE(HIP_COMPILER_FLAGS);                 // FIXME
+            auto optCompile =
+                miopen::SplitSpaceSeparated(raw, compiler::lc::GetHipOptionsNoSplit());
+            compiler::lc::RemoveHipSuperfluousOptions(optCompile);
+            action.SetOptionList(optCompile);
+
+            action.Do(AMD_COMGR_ACTION_COMPILE_SOURCE_TO_FATBIN, inputs, exe);
         }
-        auto optCompile = miopen::SplitSpaceSeparated(raw, compiler::lc::GetHipOptionsNoSplit());
+        else
+        {
+            auto raw = options + " "                                                       //
+                       + "-Xclang -isystem -Xclang /opt/rocm/hcc/lib/clang/10.0.0/include" // FIXME
+                       + " " + GetDebugCompilerOptionsInsert()                             //
+                       + " " + MIOPEN_STRINGIZE(HIP_COMPILER_FLAGS);                       // FIXME
+            auto optCompile =
+                miopen::SplitSpaceSeparated(raw, compiler::lc::GetHipOptionsNoSplit());
 
-        // FIXME Removes also linker options
-        compiler::lc::RemoveHipSuperfluousOptions(optCompile);
-        action.SetOptionList(optCompile);
+            // FIXME Removes also linker options
+            compiler::lc::RemoveHipSuperfluousOptions(optCompile);
+            action.SetOptionList(optCompile);
 
-        const Dataset compiledBc;
-        action.Do(AMD_COMGR_ACTION_COMPILE_SOURCE_TO_BC, inputs, compiledBc);
+            const Dataset compiledBc;
+            action.Do(AMD_COMGR_ACTION_COMPILE_SOURCE_TO_BC, inputs, compiledBc);
 
-        OptionList optLink;
-        optLink.push_back("wavefrontsize64");
-        optLink.push_back("daz_opt");     // Assume that it's ok to flush denormals to zero.
-        optLink.push_back("finite_only"); // No need to handle INF correcly.
-        optLink.push_back("unsafe_math"); // Prefer speed over correctness for FP math.
+            OptionList optLink;
+            optLink.push_back("wavefrontsize64");
+            optLink.push_back("daz_opt");     // Assume that it's ok to flush denormals to zero.
+            optLink.push_back("finite_only"); // No need to handle INF correcly.
+            optLink.push_back("unsafe_math"); // Prefer speed over correctness for FP math.
 
-        action.SetOptionList(optLink);
-        const Dataset addedDevLibs;
-        action.Do(AMD_COMGR_ACTION_ADD_DEVICE_LIBRARIES, compiledBc, addedDevLibs);
-        const Dataset linkedBc;
-        action.Do(AMD_COMGR_ACTION_LINK_BC_TO_BC, addedDevLibs, linkedBc);
+            action.SetOptionList(optLink);
+            const Dataset addedDevLibs;
+            action.Do(AMD_COMGR_ACTION_ADD_DEVICE_LIBRARIES, compiledBc, addedDevLibs);
+            const Dataset linkedBc;
+            action.Do(AMD_COMGR_ACTION_LINK_BC_TO_BC, addedDevLibs, linkedBc);
 
-        action.SetOptionList(optCompile);
-        const Dataset relocatable;
-        action.Do(AMD_COMGR_ACTION_CODEGEN_BC_TO_RELOCATABLE, linkedBc, relocatable);
+            action.SetOptionList(optCompile);
+            const Dataset relocatable;
+            action.Do(AMD_COMGR_ACTION_CODEGEN_BC_TO_RELOCATABLE, linkedBc, relocatable);
 
-        action.SetOptionList(OptionList());
-        const Dataset exe;
-        action.Do(AMD_COMGR_ACTION_LINK_RELOCATABLE_TO_EXECUTABLE, relocatable, exe);
-#endif
+            action.SetOptionList(OptionList());
+            action.Do(AMD_COMGR_ACTION_LINK_RELOCATABLE_TO_EXECUTABLE, relocatable, exe);
+        }
 
         constexpr auto INTENTIONALY_UNKNOWN = static_cast<amd_comgr_status_t>(0xffff);
         if(exe.GetDataCount(AMD_COMGR_DATA_KIND_EXECUTABLE) < 1)

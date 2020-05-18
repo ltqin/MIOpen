@@ -99,51 +99,10 @@ def buildJob(compiler, flags, image, prefixpath="/opt/rocm", cmd = ""){
         return retimage
 }
 
-def buildHipClangJob(compiler, flags, image, prefixpath="/opt/rocm", cmd = ""){
-
-        env.HSA_ENABLE_SDMA=0 
-        checkout scm
-        def dockerOpts="--device=/dev/kfd --device=/dev/dri --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined"
-        def dockerArgs = "--build-arg PREFIX=${prefixpath} -f hip-clang.docker "
-        def retimage
-        try {
-            retimage = docker.build("${image}", dockerArgs + '.')
-            withDockerContainer(image: image, args: dockerOpts) {
-                timeout(time: 5, unit: 'MINUTES')
-                {
-                    sh 'PATH="/opt/rocm/opencl/bin:/opt/rocm/opencl/bin/x86_64:$PATH" clinfo'
-                }
-            }
-        } catch(Exception ex) {
-            retimage = docker.build("${image}", dockerArgs + "--no-cache .")
-            withDockerContainer(image: image, args: dockerOpts) {
-                timeout(time: 5, unit: 'MINUTES')
-                {
-                    sh 'PATH="/opt/rocm/opencl/bin:/opt/rocm/opencl/bin/x86_64:$PATH" clinfo'
-                }
-            }
-        }
-
-        withDockerContainer(image: image, args: dockerOpts + ' -v=/var/jenkins/:/var/jenkins') {
-            timeout(time: 5, unit: 'HOURS')
-            {
-                if(cmd == ""){
-                    cmake_build(compiler, flags, prefixpath)
-                }else{
-                    sh cmd
-                }
-            }
-        }
-        return retimage
-}
-
 
 
 pipeline {
     agent none 
-    options {
-        parallelsAlwaysFailFast()
-    }
     environment{
         image = "miopen"
     }
@@ -151,8 +110,9 @@ pipeline {
         stage('FP32 gfx908 Hip Debug All subset') {
              agent{ label rocmnode("gfx908") }
                 steps{
-                    buildJob('hcc', '-DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=debug', image + "rocm")
+                    buildJob("hcc",'-DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=debug', image+"rocm", "test_immed_conv2d", "/opt/rocm", 'MIOPEN_ENABLE_LOGGING_CMD=1 MIOPEN_LOG_LEVEL=6 ./build/bin/test_immed_conv2d --all --verbose --disable-verification-cache')
                 }
+
          }
     }
 }

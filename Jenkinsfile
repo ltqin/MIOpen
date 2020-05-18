@@ -110,7 +110,7 @@ pipeline {
         stage('FP32 gfx908 Hip Debug All subset') {
              agent{ label rocmnode("gfx908") }
                 steps{
-                    buildJob("hcc",'-DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=debug', image+"rocm", "test_immed_conv2d", "/opt/rocm", 'MIOPEN_ENABLE_LOGGING_CMD=1 MIOPEN_LOG_LEVEL=6 ./build/bin/test_immed_conv2d --all --verbose --disable-verification-cache')
+                    buildJob("hcc",'-DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=debug', image+"rocm", "/opt/rocm", 'MIOPEN_ENABLE_LOGGING_CMD=1 MIOPEN_LOG_LEVEL=6 ./build/bin/test_immed_conv2d --all --verbose --disable-verification-cache')
                 }
 
          }

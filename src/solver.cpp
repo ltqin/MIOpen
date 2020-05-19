@@ -308,12 +308,10 @@ inline SolverRegistrar::SolverRegistrar(IdRegistryData& registry)
                        ConvHipImplicitGemmV4R4GenXdlopsFwdFp32{},
                        miopenConvolutionAlgoImplicitGEMM);
 
-#if 0 /// \todo Enable when Invoker is implemented.
     RegisterWithSolver(registry,
                        ++id,
                        ConvHipImplicitGemmV4R4GenXdlopsWrWFp32{},
                        miopenConvolutionAlgoImplicitGEMM);
-#endif
 }
 
 } // namespace solver

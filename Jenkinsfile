@@ -20,7 +20,7 @@ def rocmnode(name) {
 
 
 
-def cmake_build(compiler, flags, prefixpath="/opt/rocm"){
+def cmake_build(compiler, flags, env_cmd, prefixpath){
     def workspace_dir = pwd()
     def vcache = "/var/jenkins/.cache/miopen/vcache"
     def archive = (flags == '-DCMAKE_BUILD_TYPE=release')
@@ -47,7 +47,7 @@ def cmake_build(compiler, flags, prefixpath="/opt/rocm"){
         mkdir build
         cd build
         CXX=${compilerpath} CXXFLAGS='-Werror' cmake ${configargs} -DMIOPEN_GPU_SYNC=On -DMIOPEN_TEST_FLAGS='${test_flags}' -DCMAKE_CXX_FLAGS_DEBUG='${debug_flags}' ${flags} .. 
-        MIOPEN_COMPILE_PARALLEL_LEVEL=1 MIOPEN_LOG_LEVEL=6 MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_XDLOPS=1 CTEST_PARALLEL_LEVEL=4 MIOPEN_VERIFY_CACHE_PATH=${vcache} MIOPEN_CONV_PRECISE_ROCBLAS_TIMING=0 dumb-init make -j\$(nproc) ${config_targets}
+        ${env_cmd} MIOPEN_LOG_LEVEL=6 MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_XDLOPS=1 CTEST_PARALLEL_LEVEL=4 MIOPEN_VERIFY_CACHE_PATH=${vcache} MIOPEN_CONV_PRECISE_ROCBLAS_TIMING=0 dumb-init make -j\$(nproc) ${config_targets}
     """
     echo cmd
     sh cmd
@@ -57,7 +57,7 @@ def cmake_build(compiler, flags, prefixpath="/opt/rocm"){
     }
 }
 
-def buildJob(compiler, flags, image, prefixpath="/opt/rocm", cmd = ""){
+def buildJob(compiler, flags, env_cmd, image, prefixpath="/opt/rocm", cmd = ""){
 
         env.HSA_ENABLE_SDMA=0 
         checkout scm
@@ -90,16 +90,16 @@ def buildJob(compiler, flags, image, prefixpath="/opt/rocm", cmd = ""){
             timeout(time: 5, unit: 'HOURS')
             {
                 if(cmd == ""){
-                    cmake_build(compiler, flags, prefixpath)
+                    cmake_build(compiler, flags, env_cmd, prefixpath)
                 }else{
-                    sh cmd
+                    sh ${env_cmd} ${cmd}
                 }
             }
         }
         return retimage
 }
 
-def buildHipClangJob(compiler, flags, image, prefixpath="/opt/rocm", cmd = ""){
+def buildHipClangJob(compiler, flags, env_cmd, image, prefixpath="/opt/rocm", cmd = ""){
 
         env.HSA_ENABLE_SDMA=0 
         checkout scm
@@ -128,9 +128,9 @@ def buildHipClangJob(compiler, flags, image, prefixpath="/opt/rocm", cmd = ""){
             timeout(time: 5, unit: 'HOURS')
             {
                 if(cmd == ""){
-                    cmake_build(compiler, flags, prefixpath)
+                    cmake_build(compiler, flags, env_cmd, prefixpath)
                 }else{
-                    sh cmd
+                    sh ${env_cmd} ${cmd}
                 }
             }
         }
@@ -153,11 +153,24 @@ pipeline {
                 stage('FP32 gfx908 Hip Debug All subset') {
                     agent{ label rocmnode("gfx908") }
                     steps{
-                        buildJob('hcc', '-DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=debug', image + "rocm")
+                        buildJob('hcc', '-DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=debug', 'MIOPEN_COMPILE_PARALLEL_LEVEL=1', image + "rocm")
+                    }
+                }
+                stage('Bfloat16 gfx908 Hip Release All Subset') {
+                    agent{ label rocmnode("gfx908") }
+                    steps{
+                        buildJob('hcc', '-DMIOPEN_TEST_BFLOAT16=On -DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=release', "", image + "rocm")
+                    }
+                }
+                stage('Half gfx908 Hip Release All Subset') {
+                    agent{ label rocmnode("gfx908") }
+                    steps{
+                        buildJob('hcc', '-DMIOPEN_TEST_HALF=On -DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=release', "", image + "rocm")
                     }
                 }
             }
         }
+
     }    
 }
 

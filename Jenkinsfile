@@ -47,7 +47,7 @@ def cmake_build(compiler, flags, env_cmd, prefixpath){
         mkdir build
         cd build
         CXX=${compilerpath} CXXFLAGS='-Werror' cmake ${configargs} -DMIOPEN_GPU_SYNC=On -DMIOPEN_TEST_FLAGS='${test_flags}' -DCMAKE_CXX_FLAGS_DEBUG='${debug_flags}' ${flags} .. 
-        ${env_cmd} MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_XDLOPS=1 CTEST_PARALLEL_LEVEL=4 MIOPEN_VERIFY_CACHE_PATH=${vcache} MIOPEN_CONV_PRECISE_ROCBLAS_TIMING=0 dumb-init make -j\$(nproc) ${config_targets}
+        MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_XDLOPS=1 CTEST_PARALLEL_LEVEL=4 MIOPEN_VERIFY_CACHE_PATH=${vcache} MIOPEN_CONV_PRECISE_ROCBLAS_TIMING=0 ${env_cmd} dumb-init make -j\$(nproc) ${config_targets}
     """
     echo cmd
     sh cmd
@@ -173,19 +173,19 @@ pipeline {
                 stage('FP32 gfx908 Hip Release All subset') {
                     agent{ label rocmnode("gfx908") }
                     steps{
-                        buildJob('hcc', '-DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=release', 'MIOPEN_LOG_LEVEL=6 MIOPEN_COMPILE_PARALLEL_LEVEL=1', image + "rocm")
+                        buildJob('hcc', '-DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=release', 'MIOPEN_LOG_LEVEL=6', image + "rocm")
                     }
                 }
                 stage('Bfloat16 gfx908 Hip Release All Subset') {
                     agent{ label rocmnode("gfx908") }
                     steps{
-                        buildJob('hcc', '-DMIOPEN_TEST_BFLOAT16=On -DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=release', 'MIOPEN_LOG_LEVEL=6 MIOPEN_COMPILE_PARALLEL_LEVEL=1', image + "rocm")
+                        buildJob('hcc', '-DMIOPEN_TEST_BFLOAT16=On -DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=release', 'MIOPEN_LOG_LEVEL=6', image + "rocm")
                     }
                 }
                 stage('Half gfx908 Hip Release All Subset') {
                     agent{ label rocmnode("gfx908") }
                     steps{
-                        buildJob('hcc', '-DMIOPEN_TEST_HALF=On -DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=release', 'MIOPEN_LOG_LEVEL=6 MIOPEN_COMPILE_PARALLEL_LEVEL=1', image + "rocm")
+                        buildJob('hcc', '-DMIOPEN_TEST_HALF=On -DMIOPEN_TEST_GFX908=On -DBUILD_DEV=On -DMIOPEN_TEST_ALL=On -DCMAKE_BUILD_TYPE=release', 'MIOPEN_LOG_LEVEL=6', image + "rocm")
                     }
                 }
             }

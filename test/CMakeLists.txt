@@ -150,20 +150,28 @@ function(add_sanitize_test TEST_SOURCE)
     endforeach()
 endfunction()
 
-# Manually sorted in descending order of durations taken from
-# Jenkins, "Full long tests"/"HIP Release All".
-# This is to exploit ctest's parallelizm as much as possible.
-# Right now there are some long orphan jobs at the end.
-# As of today, this order can potentially save up to ~23 minutes
-# (20%) of total time of "HIP Release All".
-# Custom tests also reordered in the same manner.
-set( TESTS
+# All the tests are manually sorted in descending order of durations taken from
+# Jenkins, "Full long tests"/"HIP Release All". This is to exploit ctest's 
+# parallelizm as much as possible. Before this change, there were some long
+# jobs at the end, utilizing only one CPU core. This order can potentially
+# save up to ~23 minutes (20%) of total time of "HIP Release All".
+#
+# We use two lists, LONG_TESTS and SHORT_TESTS to implement the sorting
+# mentioned above. If you would like to add a new test, insert it into the
+# LONG_TESTS if it takes more than 800 seconds, or to SHORT_TESTS otherwise.
+# Please notice that each list is also sorted and it is highly recommended
+# to keep this sorting when adding new tests.
+
+set( LONG_TESTS
     pooling2d.cpp
     dropout.cpp
     conv2d.cpp
     pooling3d.cpp
     soft_max.cpp
     lrn_test.cpp
+    )
+
+set( SHORT_TESTS
     immed_conv2d.cpp
     immed_conv3d.cpp
     activation.cpp
@@ -214,7 +222,7 @@ set( TESTS
     include_inliner.cpp
     )
 
-foreach(TEST ${TESTS})
+foreach(TEST ${LONG_TESTS})
     get_filename_component(BASE_NAME ${TEST} NAME_WE)
     add_test_executable(test_${BASE_NAME} ${TEST})
 endforeach()
@@ -659,3 +667,8 @@ if(MIOPEN_TEST_CONV)
     COMMAND	$<TARGET_FILE:test_conv2d>	--verbose	--input	1	48	7	7	--weights	1	48	5	5	--pads_strides_dilations	0	0	4	4	1	1						
 )
 endif()
+
+foreach(TEST ${SHORT_TESTS})
+    get_filename_component(BASE_NAME ${TEST} NAME_WE)
+    add_test_executable(test_${BASE_NAME} ${TEST})
+endforeach()

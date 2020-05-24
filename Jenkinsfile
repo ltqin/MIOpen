@@ -20,7 +20,7 @@ def rocmnode(name) {
 
 
 
-def cmake_build(compiler, flags, env_cmd, prefixpath){
+def cmake_build(compiler, flags, env4make, prefixpath){
     def workspace_dir = pwd()
     def vcache = "/var/jenkins/.cache/miopen/vcache"
     def archive = (flags == '-DCMAKE_BUILD_TYPE=release')
@@ -47,7 +47,7 @@ def cmake_build(compiler, flags, env_cmd, prefixpath){
         mkdir build
         cd build
         CXX=${compilerpath} CXXFLAGS='-Werror' cmake ${configargs} -DMIOPEN_GPU_SYNC=On -DMIOPEN_TEST_FLAGS='${test_flags}' -DCMAKE_CXX_FLAGS_DEBUG='${debug_flags}' ${flags} .. 
-        MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_XDLOPS=1 CTEST_PARALLEL_LEVEL=4 MIOPEN_VERIFY_CACHE_PATH=${vcache} MIOPEN_CONV_PRECISE_ROCBLAS_TIMING=0 ${env_cmd} dumb-init make -j\$(nproc) ${config_targets}
+        MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_XDLOPS=1 CTEST_PARALLEL_LEVEL=4 MIOPEN_VERIFY_CACHE_PATH=${vcache} MIOPEN_CONV_PRECISE_ROCBLAS_TIMING=0 ${env4make} dumb-init make -j\$(nproc) ${config_targets}
     """
     echo cmd
     sh cmd
@@ -57,7 +57,7 @@ def cmake_build(compiler, flags, env_cmd, prefixpath){
     }
 }
 
-def buildJob(compiler, flags, env_cmd, image, prefixpath="/opt/rocm", cmd = ""){
+def buildJob(compiler, flags, env4make, image, prefixpath="/opt/rocm", cmd = ""){
 
         env.HSA_ENABLE_SDMA=0 
         checkout scm
@@ -90,16 +90,16 @@ def buildJob(compiler, flags, env_cmd, image, prefixpath="/opt/rocm", cmd = ""){
             timeout(time: 5, unit: 'HOURS')
             {
                 if(cmd == ""){
-                    cmake_build(compiler, flags, env_cmd, prefixpath)
+                    cmake_build(compiler, flags, env4make, prefixpath)
                 }else{
-                    sh env_cmd cmd
+                    sh cmd
                 }
             }
         }
         return retimage
 }
 
-def buildHipClangJob(compiler, flags, env_cmd, image, prefixpath="/opt/rocm", cmd = ""){
+def buildHipClangJob(compiler, flags, env4make, image, prefixpath="/opt/rocm", cmd = ""){
 
         env.HSA_ENABLE_SDMA=0 
         checkout scm
@@ -128,9 +128,9 @@ def buildHipClangJob(compiler, flags, env_cmd, image, prefixpath="/opt/rocm", cm
             timeout(time: 5, unit: 'HOURS')
             {
                 if(cmd == ""){
-                    cmake_build(compiler, flags, env_cmd, prefixpath)
+                    cmake_build(compiler, flags, env4make, prefixpath)
                 }else{
-                    sh env_cmd cmd
+                    sh cmd
                 }
             }
         }

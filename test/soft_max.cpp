@@ -400,6 +400,8 @@ struct softmax_driver : test_driver
         in_dim_set.erase({1, 1, 8, 8});
         in_dim_set.erase({1, 1, 14, 14});
         in_dim_set.erase({1, 1, 27, 27});
+        in_dim_set.erase({1, 32, 7, 7});
+        in_dim_set.erase({1, 32, 8, 8});
 
         std::vector<std::vector<int>> in_dim_vec(in_dim_set.begin(), in_dim_set.end());
 

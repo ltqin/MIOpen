@@ -558,9 +558,10 @@ int ConvHipImplicitGemmV4R4GenXdlopsWrWFp32::RunAndMeasureSolution(const miopen:
 
 bool ConvHipImplicitGemmV4R4GenXdlopsWrWFp32::IsApplicable(const ConvolutionContext& ctx) const
 {
-// There are random failures with certain configs,
-// see https://github.com/ROCmSoftwarePlatform/MIOpen/pull/228
-// We can't trust this solver until the reason is found and fixed.
+/// \todo Fix and remove this workaround.
+/// There are random failures with certain configs,
+/// see https://github.com/ROCmSoftwarePlatform/MIOpen/pull/228
+/// We can't trust this solver until the reason is found and fixed.
 #if 1
     (void)ctx;
     return false;

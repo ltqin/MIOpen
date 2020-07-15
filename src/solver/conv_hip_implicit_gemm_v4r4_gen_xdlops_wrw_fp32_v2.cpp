@@ -497,8 +497,8 @@ ConvSolution ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::GetSolution(
              std::ignore) = config.CalculateGemmBBlockCopyPerformanceParameters(ctx);
 
     // clang-format off
-    construction_parameters.kernel_file = "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fwd_fp32_nchw_kcyx_nkhw_lds_double_buffer.cpp";
-    construction_parameters.kernel_name = "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fwd_fp32_nchw_kcyx_nkhw_lds_double_buffer";
+    construction_parameters.kernel_file = "gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw.cpp";
+    construction_parameters.kernel_name = "gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw";
 
     construction_parameters.comp_options =
         std::string(" -std=c++14 ") +

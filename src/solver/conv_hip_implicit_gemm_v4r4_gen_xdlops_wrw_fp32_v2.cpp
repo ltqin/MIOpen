@@ -594,11 +594,11 @@ bool ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::IsApplicable(const ConvolutionC
 /// There are random failures with certain configs,
 /// see https://github.com/ROCmSoftwarePlatform/MIOpen/pull/228
 /// We can't trust this solver until the reason is found and fixed.
-#if 1
+#if 0
     (void)ctx;
     return false;
 #else
-    if(!(ctx.IsFp32()))
+    if(!(ctx.IsFp16()))
         return false;
     if(!ctx.use_hip_kernels)
         return false;

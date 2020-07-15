@@ -34,6 +34,7 @@
 #include <miopen/tensor_ops.hpp>
 
 #include "implicitgemm_util.hpp"
+#include <iostream>
 
 namespace miopen {
 namespace solver {
@@ -422,6 +423,7 @@ ConvSolution ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::GetSolution(
     const PerformanceImplicitGemmV4R4GenXdlopsWrWFp16& config,
     bool) const
 {
+    std::cout << "This is function: " << "ConvSolution ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::GetSolution" << std::endl;
     ConvSolution result;
     KernelInfo construction_parameters;
 
@@ -495,8 +497,8 @@ ConvSolution ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::GetSolution(
              std::ignore) = config.CalculateGemmBBlockCopyPerformanceParameters(ctx);
 
     // clang-format off
-    construction_parameters.kernel_file = "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fwd_fp16_nchw_kcyx_nkhw_lds_single_buffer.cpp";
-    construction_parameters.kernel_name = "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fwd_fp16_nchw_kcyx_nkhw_lds_single_buffer";
+    construction_parameters.kernel_file = "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fwd_fp32_nchw_kcyx_nkhw_lds_double_buffer.cpp";
+    construction_parameters.kernel_name = "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fwd_fp32_nchw_kcyx_nkhw_lds_double_buffer";
 
     construction_parameters.comp_options =
         std::string(" -std=c++14 ") +

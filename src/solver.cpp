@@ -320,7 +320,7 @@ inline SolverRegistrar::SolverRegistrar(IdRegistryData& registry)
 
     RegisterWithSolver(registry,
                        ++id,
-                       ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2{},
+                       ConvHipImplicitGemmV4R4GenXdlopsWrWFp16{},
                        miopenConvolutionAlgoImplicitGEMM);
 }
 

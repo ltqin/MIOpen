@@ -39,7 +39,7 @@ namespace miopen {
 namespace solver {
 
 std::tuple<int, int, int, int, bool>
-PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::CalculateGemmABlockCopyPerformanceParameters(
+PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::CalculateGemmABlockCopyPerformanceParameters(
     const ConvolutionContext& ctx) const
 {
     int ClusterLengths_GemmK  = 0;
@@ -98,7 +98,7 @@ PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::CalculateGemmABlockCopyPerforman
 }
 
 std::tuple<int, int, int, int, bool>
-PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::CalculateGemmBBlockCopyPerformanceParameters(
+PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::CalculateGemmBBlockCopyPerformanceParameters(
     const ConvolutionContext& ctx) const
 {
     int ClusterLengths_GemmK  = 0;
@@ -188,7 +188,7 @@ PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::CalculateGemmBBlockCopyPerforman
                            true);
 }
 
-std::tuple<std::size_t, bool> PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::CalculateLdsNumberOfByte(
+std::tuple<std::size_t, bool> PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::CalculateLdsNumberOfByte(
     const ConvolutionContext& ctx) const
 {
     std::size_t lds_size = 0;
@@ -242,7 +242,7 @@ std::tuple<std::size_t, bool> PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::Ca
     return std::make_tuple(lds_size, true);
 }
 
-bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::IsValid(const ConvolutionContext& ctx) const
+bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::IsValid(const ConvolutionContext& ctx) const
 {
     const std::size_t n  = ConvolutionContextInterpreter::GetBatchN(ctx);
     const std::size_t k  = ConvolutionContextInterpreter::GetOutputChannelK(ctx) / ctx.group_counts;
@@ -303,7 +303,7 @@ bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::IsValid(const ConvolutionCo
     return (valid and lds_size <= 64 * 1024);
 }
 
-PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2(bool spare)
+PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::PerformanceImplicitGemmV4R4GenXdlopsWrWFp16(bool spare)
 {
     GemmMPerBlock = 4;
     GemmNPerBlock = 16;
@@ -316,7 +316,7 @@ PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::PerformanceImplicitGemmV4R4GenXd
     use_spare_set = spare;
 }
 
-PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2(
+PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::PerformanceImplicitGemmV4R4GenXdlopsWrWFp16(
     int GemmMPerBlock_,
     int GemmNPerBlock_,
     int GemmKPerBlock_,
@@ -334,8 +334,8 @@ PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::PerformanceImplicitGemmV4R4GenXd
 {
 }
 
-bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::
-operator==(const PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2& other) const
+bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::
+operator==(const PerformanceImplicitGemmV4R4GenXdlopsWrWFp16& other) const
 {
     // clang-format off
     return  GemmMPerBlock == other.GemmMPerBlock
@@ -348,7 +348,7 @@ operator==(const PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2& other) const
     // clang-format on
 }
 
-bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::IsValidValue() const
+bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::IsValidValue() const
 {
     // clang-format off
     return
@@ -361,7 +361,7 @@ bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::IsValidValue() const
     // clang-format on
 }
 
-bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::SetNextValue()
+bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::SetNextValue()
 {
     do
     {
@@ -383,9 +383,9 @@ bool PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::SetNextValue()
     return true;
 }
 
-void PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::EuristicInit(const ConvolutionContext& ctx)
+void PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::EuristicInit(const ConvolutionContext& ctx)
 {
-    PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2 tmp;
+    PerformanceImplicitGemmV4R4GenXdlopsWrWFp16 tmp;
     tmp = {128, 128, 16, 1, 64, 64, use_spare_set};
 
     if(!tmp.IsValid(ctx))
@@ -404,22 +404,22 @@ void PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::EuristicInit(const Convolut
     MIOPEN_LOG_I(ToString());
 }
 
-std::string PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2::ToString() const
+std::string PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::ToString() const
 {
     std::ostringstream ss;
     Serialize(ss);
     return ss.str();
 }
 
-PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2
-ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::GetPerformanceConfig(const ConvolutionContext& ctx) const
+PerformanceImplicitGemmV4R4GenXdlopsWrWFp16
+ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::GetPerformanceConfig(const ConvolutionContext& ctx) const
 {
-    return GetPerformanceConfigBase<PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2>(ctx);
+    return GetPerformanceConfigBase<PerformanceImplicitGemmV4R4GenXdlopsWrWFp16>(ctx);
 }
 
-ConvSolution ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::GetSolution(
+ConvSolution ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::GetSolution(
     const ConvolutionContext& ctx,
-    const PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2& config,
+    const PerformanceImplicitGemmV4R4GenXdlopsWrWFp16& config,
     bool) const
 {
     ConvSolution result;
@@ -572,7 +572,7 @@ ConvSolution ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::GetSolution(
     return result;
 }
 
-int ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::RunAndMeasureSolution(const miopen::Handle& profile_h,
+int ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::RunAndMeasureSolution(const miopen::Handle& profile_h,
                                                                    ConstData_t bot_buf,
                                                                    ConstData_t top_buf,
                                                                    Data_t wei_buf,
@@ -588,7 +588,7 @@ int ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::RunAndMeasureSolution(const miop
         profile_h, bot_buf, top_buf, wei_buf, ctx, solution, elapsed_time);
 }
 
-bool ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::IsApplicable(const ConvolutionContext& ctx) const
+bool ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::IsApplicable(const ConvolutionContext& ctx) const
 {
 /// \todo Fix and remove this workaround.
 /// There are random failures with certain configs,
@@ -625,15 +625,15 @@ bool ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::IsApplicable(const ConvolutionC
 #endif
 }
 
-bool ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::IsValidPerformanceConfig(
-    const ConvolutionContext& ctx, const PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2& c) const
+bool ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::IsValidPerformanceConfig(
+    const ConvolutionContext& ctx, const PerformanceImplicitGemmV4R4GenXdlopsWrWFp16& c) const
 {
     MIOPEN_LOG_I("");
     return c.IsValidValue() && c.IsValid(ctx);
 }
 
-PerformanceImplicitGemmV4R4GenXdlopsWrWFp32_v2
-ConvHipImplicitGemmV4R4GenXdlopsWrWFp32_v2::Search(const ConvolutionContext& ctx) const
+PerformanceImplicitGemmV4R4GenXdlopsWrWFp16
+ConvHipImplicitGemmV4R4GenXdlopsWrWFp16::Search(const ConvolutionContext& ctx) const
 {
     return GenericSearchWrW(*this, ctx);
 }

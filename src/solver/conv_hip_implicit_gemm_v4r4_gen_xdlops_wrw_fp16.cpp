@@ -96,10 +96,10 @@ static inline ConvSolution GetSolutionBase(const ConvolutionContext& ctx,
         {
 
             construction_parameters.kernel_file =
-                "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_lds_double_buffer.cpp";
+                "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_fp16.cpp";
 
             construction_parameters.kernel_name =
-		"gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_lds_double_buffer";
+		"gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_fp16";
         }
         // clang-format on
     }
@@ -435,7 +435,7 @@ int ConvHipImplicitGemmV4R4GenWrWXdlopsFp16::RunAndMeasureSolution(const miopen:
 
 bool ConvHipImplicitGemmV4R4GenWrWXdlopsFp16::IsApplicable(const ConvolutionContext& ctx) const
 {
-    if(!(ctx.IsFp32() || ctx.IsFp16() || ctx.IsBfp16()))
+    if(!(ctx.IsFp16() || ctx.IsBfp16()))
         return false;
     if(!ctx.use_hip_kernels)
         return false;
@@ -444,8 +444,6 @@ bool ConvHipImplicitGemmV4R4GenWrWXdlopsFp16::IsApplicable(const ConvolutionCont
     if(!ctx.Is2d())
         return false;
 
-    if(ConvHipImplicitGemmV4R4GenXdlopsWrWFp32{}.IsApplicable(ctx))
-        return false;
 
     return IsApplicableXdlops(ctx);
 }
@@ -469,28 +467,20 @@ PerformanceImplicitGemmXdlops
 ConvHipImplicitGemmV4R4GenWrWXdlopsFp16::Search(const ConvolutionContext& ctx) const
 {
     // fp16/bfp16 uses fp32 workspace to leverage fp32 atomic add
-    if(ctx.IsFp16() || ctx.IsBfp16())
-        return GenericSearchWrW(*this, ctx, SearchTweak::WorkspaceInsteadOfWeightsBuffer);
-    else
-        return GenericSearchWrW(*this, ctx);
+    return GenericSearchWrW(*this, ctx, SearchTweak::WorkspaceInsteadOfWeightsBuffer);
 }
 
 size_t ConvHipImplicitGemmV4R4GenWrWXdlopsFp16::GetWorkspaceSize(const ConvolutionContext& ctx) const
 {
-    if(ctx.IsFp32())
-        return 0;
-    else
-    {
-        // In case of fp16/bfp16, because there is no atomic add ISA,
-        // reduction via atomic add ISA is done via fp32. As a result,
-        // workspace is computed with miopenFloat data type.
-        // Later, a separate kernel is invoked that casts from fp32 to fp16/bfp16
-        std::size_t k = KernelBatchN(ctx);
-        std::size_t c = KernelOutputChannelK(ctx);
-        std::size_t y = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
-        std::size_t x = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
-        return k * c * y * x * miopen::GetTypeSize(miopenFloat);
-    }
+    // In case of fp16/bfp16, because there is no atomic add ISA,
+    // reduction via atomic add ISA is done via fp32. As a result,
+    // workspace is computed with miopenFloat data type.
+    // Later, a separate kernel is invoked that casts from fp32 to fp16/bfp16
+    std::size_t k = KernelBatchN(ctx);
+    std::size_t c = KernelOutputChannelK(ctx);
+    std::size_t y = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
+    std::size_t x = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
+    return k * c * y * x * miopen::GetTypeSize(miopenFloat);
 }
 
 } // namespace solver

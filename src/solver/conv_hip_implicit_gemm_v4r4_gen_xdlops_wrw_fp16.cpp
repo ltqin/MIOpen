@@ -96,10 +96,10 @@ static inline ConvSolution GetSolutionBase(const ConvolutionContext& ctx,
         {
 
             construction_parameters.kernel_file =
-                "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_fp16.cpp";
+                "gridwise_convolution_backward_weights_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_fp16.cpp";
 
             construction_parameters.kernel_name =
-		"gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_fp16";
+		"gridwise_convolution_backward_weights_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_fp16";
         }
         // clang-format on
     }

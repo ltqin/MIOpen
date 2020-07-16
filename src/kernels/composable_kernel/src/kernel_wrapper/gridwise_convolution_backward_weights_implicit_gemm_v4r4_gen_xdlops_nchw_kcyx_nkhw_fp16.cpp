@@ -1,9 +1,10 @@
 #include "common_header.hpp"
 #include "ConstantTensorDescriptor_deprecated.hpp"
-//#include "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fp16_bfp16_wrw_nchw_kcyx_nkhw.hpp"
-#include "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_lds_double_buffer.hpp"
-#include "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fp16_bfp16_fwd_nchw_kcyx_nkhw_lds_double_buffer.hpp"
+#include "implicitgemm_params.hpp"
+//#include "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_lds_double_buffer.hpp"
+//#include "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fp16_bfp16_fwd_nchw_kcyx_nkhw_lds_double_buffer.hpp"
 #include "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fp16_bfp16_wrw_nchw_kcyx_nkhw_lds_double_buffer.hpp"
+//#include "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_fp16_bfp16_wrw_nchw_kcyx_nkhw.hpp"
 #include "float_types.h"
 
 extern "C" __global__

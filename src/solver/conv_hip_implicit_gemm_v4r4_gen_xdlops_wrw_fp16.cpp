@@ -184,10 +184,8 @@ static inline ConvSolution GetSolutionBase(const ConvolutionContext& ctx,
     ABlockCopySrcDataPerRead_GemmK =
         ctx.direction.IsBackwardData() ? 1 : ABlockCopySrcDataPerRead_GemmK;
 
-    const auto ABlockCopyDstDataPerWrite_GemmM =
-        ctx.IsFp32() ? GetReadWriteVectorSize(ABlockCopySubLengths_GemmM) : 1;
-    const auto BBlockCopyDstDataPerWrite_GemmN =
-        ctx.IsFp32() ? GetReadWriteVectorSize(BBlockCopySubLengths_GemmN) : 1;
+    const auto ABlockCopyDstDataPerWrite_GemmM = 1;  //set to 1
+    const auto BBlockCopyDstDataPerWrite_GemmN = 1;  //set to 1
     const auto ABlockCopyDstDataPerWrite_GemmKPACK = !ctx.IsFp32() ? config.EPACKSize : 1;
     const auto BBlockCopyDstDataPerWrite_GemmKPACK = !ctx.IsFp32() ? config.EPACKSize : 1;
 

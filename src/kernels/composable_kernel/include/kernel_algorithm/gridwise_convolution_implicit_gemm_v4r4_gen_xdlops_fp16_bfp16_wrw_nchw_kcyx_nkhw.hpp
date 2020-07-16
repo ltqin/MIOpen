@@ -210,6 +210,7 @@ struct
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
             GemmKBlocks > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
 
+        /*
         constexpr auto gridwise_gemm =
             GridwiseBatchedGemmTransposedANormalBNormalCXdlopsFp16Bfp16_v1<
                 GridSize,
@@ -247,7 +248,44 @@ struct
                 MBlock1NBlock0,
                 1,
                 ConvStrideW>{};
-
+        */
+        constexpr auto gridwise_gemm =
+            GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<
+                GridSize,
+                BlockSize,
+                ABFloat,
+                AccFloat,
+                CFloat,
+                decltype(wei_gemmg_gemmk_gemmm_gemmkpack_global_desc),
+                decltype(in_gemmg_gemmk_gemmn_gemmkpack_global_desc),
+                decltype(out_gemmg_gemmm_gemmn_global_desc),
+                GemmMPerBlock,
+                GemmNPerBlock,
+                GemmKPerBlock,
+                GemmMPerWave,
+                GemmNPerWave,
+                GemmDataPerReadM,
+                GemmDataPerReadN,
+                GemmABlockCopyThreadSliceLengths_GemmG_GemmK_GemmM_GemmKPACK,
+                GemmABlockCopyThreadClusterLengths_GemmG_GemmK_GemmM_GemmKPACK,
+                GemmABlockCopyThreadClusterArrangeOrder,
+                GemmABlockCopySrcAccessOrder,
+                GemmABlockCopyDstAccessOrder,
+                1, // K dimension
+                GemmABlockCopySrcDataPerRead_GemmK,
+                GemmABlockCopyDstDataPerWrite_GemmKPACK,
+                GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPACK,
+                GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPACK,
+                GemmBBlockCopyThreadClusterArrangeOrder,
+                GemmBBlockCopySrcAccessOrder,
+                GemmBBlockCopyDstAccessOrder,
+                2, // N dimension
+                GemmBBlockCopySrcDataPerRead_GemmN,
+                GemmBBlockCopyDstDataPerWrite_GemmKPACK,
+                CGlobalMemoryDataOperation,
+                MBlock1NBlock0,
+                1,
+                ConvStrideW>{};
         gridwise_gemm.Run(p_wei_global, p_in_global, p_out_global);
     }
 };

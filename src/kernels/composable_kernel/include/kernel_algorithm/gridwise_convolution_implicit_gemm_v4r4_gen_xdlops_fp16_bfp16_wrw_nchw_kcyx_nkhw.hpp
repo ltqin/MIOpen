@@ -264,8 +264,6 @@ struct
                 GemmKPerBlock,
                 GemmMPerWave,
                 GemmNPerWave,
-                GemmDataPerReadM,
-                GemmDataPerReadN,
                 GemmABlockCopyThreadSliceLengths_GemmG_GemmK_GemmM_GemmKPACK,
                 GemmABlockCopyThreadClusterLengths_GemmG_GemmK_GemmM_GemmKPACK,
                 GemmABlockCopyThreadClusterArrangeOrder,
@@ -283,9 +281,7 @@ struct
                 GemmBBlockCopySrcDataPerRead_GemmN,
                 GemmBBlockCopyDstDataPerWrite_GemmKPACK,
                 CGlobalMemoryDataOperation,
-                MBlock1NBlock0,
-                1,
-                ConvStrideW>{};
+                MBlock1NBlock0>{};
         gridwise_gemm.Run(p_wei_global, p_in_global, p_out_global);
     }
 };

@@ -210,7 +210,7 @@ struct
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
             GemmKBlocks > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
 
-        /*
+        
         constexpr auto gridwise_gemm =
             GridwiseBatchedGemmTransposedANormalBNormalCXdlopsFp16Bfp16_v1<
                 GridSize,
@@ -248,7 +248,8 @@ struct
                 MBlock1NBlock0,
                 1,
                 ConvStrideW>{};
-        */
+        
+        /*
         constexpr auto gridwise_gemm =
             GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<
                 GridSize,
@@ -282,6 +283,7 @@ struct
                 GemmBBlockCopyDstDataPerWrite_GemmKPACK,
                 CGlobalMemoryDataOperation,
                 MBlock1NBlock0>{};
+            */
         gridwise_gemm.Run(p_wei_global, p_in_global, p_out_global);
     }
 };

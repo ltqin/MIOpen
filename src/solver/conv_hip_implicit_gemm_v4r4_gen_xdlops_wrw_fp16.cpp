@@ -191,16 +191,10 @@ static inline ConvSolution GetSolutionBase(const ConvolutionContext& ctx,
     const auto ABlockCopyDstDataPerWrite_GemmKPACK = !ctx.IsFp32() ? config.EPACKSize : 1;
     const auto BBlockCopyDstDataPerWrite_GemmKPACK = !ctx.IsFp32() ? config.EPACKSize : 1;
 
-    const ImplicitGemmDirection direction =
-        ctx.direction.IsForward()
-            ? ImplicitGemmDirection::ForwardData
-            : (ctx.direction.IsBackwardData() ? ImplicitGemmDirection::BackwardData
-                                              : ImplicitGemmDirection::BackwardWeight);
+    const ImplicitGemmDirection direction = ImplicitGemmDirection::BackwardWeight;
 
-    if(ctx.direction.IsBackwardWrW())
-    {
-        // clang-format off
-        construction_parameters.comp_options =
+    // clang-format off
+    construction_parameters.comp_options =
         std::string(" -DCK_PARAM_PROBLEM_K=") + std::to_string(ctx.n_inputs) + // swapped
         std::string(" -DCK_PARAM_PROBLEM_C=") + std::to_string(ctx.n_outputs) + // swapped
         std::string(" -DCK_PARAM_PROBLEM_HI=") + std::to_string(ctx.out_height) + // swapped
@@ -210,37 +204,18 @@ static inline ConvSolution GetSolutionBase(const ConvolutionContext& ctx,
         std::string(" -DCK_PARAM_PROBLEM_CONV_DIRECTION_FORWARD=") + std::to_string(0) +
         std::string(" -DCK_PARAM_PROBLEM_CONV_DIRECTION_BACKWARD_DATA=") + std::to_string(0) +
         std::string(" -DCK_PARAM_PROBLEM_CONV_DIRECTION_BACKWARD_WEIGHT=") + std::to_string(1);
-        // clang-format on
-    }
-    else
-    {
-        // clang-format off
-        construction_parameters.comp_options =
-        std::string(" -DCK_PARAM_PROBLEM_K=") + std::to_string(ctx.n_outputs) +
-        std::string(" -DCK_PARAM_PROBLEM_C=") + std::to_string(ctx.n_inputs) +
-        std::string(" -DCK_PARAM_PROBLEM_HI=") + std::to_string(ctx.in_height) +
-        std::string(" -DCK_PARAM_PROBLEM_WI=") + std::to_string(ctx.in_width) +
-        std::string(" -DCK_PARAM_PROBLEM_HO=") + std::to_string(ctx.out_height) +
-        std::string(" -DCK_PARAM_PROBLEM_WO=") + std::to_string(ctx.out_width) +
-        std::string(" -DCK_PARAM_PROBLEM_CONV_DIRECTION_FORWARD=") + std::to_string(1) +
-        std::string(" -DCK_PARAM_PROBLEM_CONV_DIRECTION_BACKWARD_DATA=") + std::to_string(0) +
-        std::string(" -DCK_PARAM_PROBLEM_CONV_DIRECTION_BACKWARD_WEIGHT=") + std::to_string(0);
-        // clang-format on
-    }
+    // clang-format on
 
     // Compute correct padding values
-    std::size_t in_height  = ctx.in_height;
-    std::size_t in_width   = ctx.in_width;
-    std::size_t out_height = ctx.out_height;
-    std::size_t out_width  = ctx.out_width;
+    //std::size_t in_height  = ctx.in_height;
+    //std::size_t in_width   = ctx.in_width;
+    //std::size_t out_height = ctx.out_height;
+    //std::size_t out_width  = ctx.out_width;
 
-    if(ctx.direction.IsBackwardWrW())
-    {
-        in_height  = ctx.out_height; // unswap
-        in_width   = ctx.out_width;  // unswap
-        out_height = ctx.in_height;  // unswap
-        out_width  = ctx.in_width;   // unswap
-    }
+    std::size_t in_height  = ctx.out_height; // unswap
+    std::size_t in_width   = ctx.out_width;  // unswap
+    std::size_t out_height = ctx.in_height;  // unswap
+    std::size_t out_width  = ctx.in_width;   // unswap
 
     // adjust padding size to align with the way MIOpen deal with padding
     std::size_t left_pad_h = ctx.pad_h;
@@ -292,109 +267,53 @@ static inline ConvSolution GetSolutionBase(const ConvolutionContext& ctx,
         ctx.general_compile_options;
     // clang-format on
 
-    if(ctx.IsFp32())
-    {
-        construction_parameters.comp_options +=
-            std::string(" -DCK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_N=") +
-            std::to_string(BBlockCopyDstDataPerWrite_GemmN) +
-            std::string(" -DCK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_M=") +
-            std::to_string(ABlockCopyDstDataPerWrite_GemmM) +
-            std::string(" -DCK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_K=") +
-            std::to_string(ABlockCopySrcDataPerRead_GemmK);
-    }
-    else
-    {
-        construction_parameters.comp_options +=
-            std::string(" -DCK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_KPACK=") +
-            std::to_string(BBlockCopyDstDataPerWrite_GemmKPACK) +
-            std::string(" -DCK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_KPACK=") +
-            std::to_string(ABlockCopyDstDataPerWrite_GemmKPACK);
+    construction_parameters.comp_options +=
+        std::string(" -DCK_PARAM_TUNABLE_GEMM_B_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_KPACK=") +
+        std::to_string(BBlockCopyDstDataPerWrite_GemmKPACK) +
+        std::string(" -DCK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_KPACK=") +
+        std::to_string(ABlockCopyDstDataPerWrite_GemmKPACK);
 
-        if(ctx.direction.IsBackwardWrW() || ctx.group_counts > 1)
-        {
-            construction_parameters.comp_options +=
-                std::string(" -DCK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_K=") +
-                std::to_string(ABlockCopySrcDataPerRead_GemmK);
-        }
-        else // only fwd non-group case
-        {
-            construction_parameters.comp_options +=
-                std::string(" -DCK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_KPACK=") +
-                std::to_string(ABlockCopySrcDataPerRead_GemmKPACK);
-        }
-    }
+    construction_parameters.comp_options +=
+        std::string(" -DCK_PARAM_TUNABLE_GEMM_A_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_K=") +
+        std::to_string(ABlockCopySrcDataPerRead_GemmK);
 
     result.construction_params.push_back(construction_parameters);
     const auto& dwDesc = ctx.conv_problem.GetWeights();
 
-    if(ctx.direction.IsForward() || ctx.direction.IsBackwardData())
-    {
-        result.invoker_factory = conv::MakeImplGemmDataInvokerFactory(ctx);
-    }
-    else if(dwDesc.GetType() == miopenHalf || dwDesc.GetType() == miopenBFloat16)
-    {
-        const auto lowp_quant  = ctx.conv_problem.GetConv().lowp_quant;
-        result.invoker_factory = [=](const std::vector<Kernel>& kernels) {
-            return [=](const Handle& handle, const boost::any& primitive_params) {
-                const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
-                const auto& tensors      = invoke_params.tensors;
-                float zero               = 0.f;
-                TensorDescriptor workSpaceDesc(
-                    miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
-                SetTensor(handle, workSpaceDesc, invoke_params.workSpace, &zero);
-                float elapsed = std::numeric_limits<float>::max();
-                if(handle.IsProfilingEnabled())
-                    elapsed = handle.GetKernelTime();
+    const auto lowp_quant  = ctx.conv_problem.GetConv().lowp_quant;
+    result.invoker_factory = [=](const std::vector<Kernel>& kernels) {
+        return [=](const Handle& handle, const boost::any& primitive_params) {
+            const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
+            const auto& tensors      = invoke_params.tensors;
+            float zero               = 0.f;
+            TensorDescriptor workSpaceDesc(
+                miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
+            SetTensor(handle, workSpaceDesc, invoke_params.workSpace, &zero);
+            float elapsed = std::numeric_limits<float>::max();
+            if(handle.IsProfilingEnabled())
+                elapsed = handle.GetKernelTime();
 
-                handle.Run(kernels[0])(tensors.x, tensors.dy, invoke_params.workSpace);
-                if(handle.IsProfilingEnabled())
-                    elapsed += handle.GetKernelTime();
+            handle.Run(kernels[0])(tensors.x, tensors.dy, invoke_params.workSpace);
+            if(handle.IsProfilingEnabled())
+                elapsed += handle.GetKernelTime();
 
-                CastTensor(handle,
-                           &lowp_quant,
-                           workSpaceDesc,
-                           invoke_params.workSpace,
-                           tensors.dwDesc,
-                           tensors.dw,
-                           0,
-                           0);
+            CastTensor(handle,
+                       &lowp_quant,
+                       workSpaceDesc,
+                       invoke_params.workSpace,
+                       tensors.dwDesc,
+                       tensors.dw,
+                       0,
+                       0);
 
-                if(handle.IsProfilingEnabled())
-                {
-                    elapsed += handle.GetKernelTime();
-                    handle.ResetKernelTime();
-                    handle.AccumKernelTime(elapsed);
-                }
-            };
+            if(handle.IsProfilingEnabled())
+            {
+                elapsed += handle.GetKernelTime();
+                handle.ResetKernelTime();
+                handle.AccumKernelTime(elapsed);
+            }
         };
-    }
-    else
-    {
-        result.invoker_factory = [](const std::vector<Kernel>& kernels) {
-            return [=](const Handle& handle, const boost::any& primitive_params) {
-                const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
-                const auto& tensors      = invoke_params.tensors;
-                float zero               = 0.f;
-                auto elapsed             = 0.f;
-
-                if(tensors.dwDesc.GetType() != miopenHalf &&
-                   tensors.dwDesc.GetType() != miopenBFloat16)
-                {
-                    SetTensor(handle, tensors.dwDesc, tensors.dw, &zero);
-                    if(handle.IsProfilingEnabled())
-                        elapsed += handle.GetKernelTime();
-                }
-
-                handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);
-                if(handle.IsProfilingEnabled())
-                {
-                    elapsed += handle.GetKernelTime();
-                    handle.ResetKernelTime();
-                    handle.AccumKernelTime(elapsed);
-                }
-            };
-        };
-    }
+    };
 
     return result;
 }

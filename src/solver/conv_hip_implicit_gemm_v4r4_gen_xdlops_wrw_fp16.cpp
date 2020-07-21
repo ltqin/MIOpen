@@ -83,24 +83,11 @@ static inline ConvSolution GetSolutionBase(const ConvolutionContext& ctx,
     if(kernel == ImplicitGemmXdlopsKernel::KernelFwdWrw)
     {
         // clang-format off
-        if(ctx.group_counts > 1)
-        {
-
-            construction_parameters.kernel_file =
-                "gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_gnchw_gkcyx_gnkhw_lds_double_buffer.cpp";
-
-            construction_parameters.kernel_name =
-		"gridwise_convolution_implicit_gemm_v4r4_gen_xdlops_gnchw_gkcyx_gnkhw_lds_double_buffer";
-        }
-        else
-        {
-
-            construction_parameters.kernel_file =
+        construction_parameters.kernel_file =
                 "gridwise_convolution_backward_weights_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_fp16.cpp";
 
-            construction_parameters.kernel_name =
+        construction_parameters.kernel_name =
 		"gridwise_convolution_backward_weights_implicit_gemm_v4r4_gen_xdlops_nchw_kcyx_nkhw_fp16";
-        }
         // clang-format on
     }
     else

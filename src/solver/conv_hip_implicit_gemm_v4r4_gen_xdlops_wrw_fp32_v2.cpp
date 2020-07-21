@@ -45,8 +45,8 @@ PerformanceImplicitGemmV4R4GenXdlopsWrWFp16::CalculateGemmABlockCopyPerformanceP
 {
     int ClusterLengths_GemmK  = 0;
     int ClusterLengths_GemmM  = 0;
-    int SrcDataPerRead_GemmK  = amd_buffer_load_max_length<float>();
-    int DstDataPerWrite_GemmM = amd_lds_write_max_length<float>();
+    int SrcDataPerRead_GemmK  = amd_buffer_load_max_length<half_float::half>();
+    int DstDataPerWrite_GemmM = amd_lds_write_max_length<half_float::half>();
 
     try
     {

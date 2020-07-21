@@ -159,7 +159,7 @@ static auto GetImplicitGemmWrWSolvers()
                                           // miopen::solver::ConvHipImplicitGemmV4R1WrW,
                                           // miopen::solver::ConvHipImplicitGemmV4R4WrW
                                           // miopen::solver::ConvHipImplicitGemmV4R4GenWrWXdlopsFp16
-                                          miopen::solver::ConvHipImplicitGemmV4R4WrWFp16
+                                          miopen::solver::ConvHipImplicitGemmWrwV4R4Xdlops
                                           >{};
 }
 

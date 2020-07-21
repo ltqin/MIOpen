@@ -913,7 +913,7 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
     if(!(ctx.IsFp32() || ctx.IsFp16() || ctx.IsBfp16()))
         return false;
 
-    if(!ctx.direction.IsForward())
+    if(!ctx.direction.IsBackwardWrW())
         return false;
 
     if(!ctx.Is2d())

@@ -1051,7 +1051,7 @@ struct ConvHipImplicitGemmForwardV4R4Xdlops : SolverBase<ConvolutionContext>
                               float& elapsed_time) const;
 };
 struct PerformanceImplicitGemmWrwV4R4Xdlops
-    : Serializable<PerformanceImplicitGemmForwardV4R4Xdlops>
+    : Serializable<PerformanceImplicitGemmWrwV4R4Xdlops>
 {
     int GemmMPerBlock;
     int GemmNPerBlock;

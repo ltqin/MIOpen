@@ -888,7 +888,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
    // result.invoker_factory = conv::MakeImplGemmDataInvokerFactory(ctx);
    // result.construction_params.push_back(construction_parameters);
 
-    result.construction_params.push_back(construction_parameters);
+   /* result.construction_params.push_back(construction_parameters);
     const auto& dwDesc = ctx.conv_problem.GetWeights();
     const auto lowp_quant  = ctx.conv_problem.GetConv().lowp_quant;
     result.invoker_factory = [=](const std::vector<Kernel>& kernels) {
@@ -922,6 +922,16 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
                 handle.ResetKernelTime();
                 handle.AccumKernelTime(elapsed);
             }
+        };
+    };
+    */
+    result.construction_params.push_back(construction_parameters);
+
+    result.invoker_factory = [](const std::vector<Kernel>& kernels) {
+        return [=](const Handle& handle, const boost::any& primitive_params) {
+            const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
+            const auto& tensors      = invoke_params.tensors;
+            handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);
         };
     };
     return result;

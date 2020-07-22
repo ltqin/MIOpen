@@ -144,7 +144,7 @@ extern "C" __global__
             BlockSize,
             FLOAT,       // Input data type
             FLOAT_ACCUM, // Acc data type
-            FLOAT,       // Ouput data type
+       //     FLOAT,       // Ouput data type
             decltype(in_n_c_hi_wi_desc),
             decltype(wei_k_cpergroup_y_x_desc),
             decltype(out_n_k_ho_wo_desc),

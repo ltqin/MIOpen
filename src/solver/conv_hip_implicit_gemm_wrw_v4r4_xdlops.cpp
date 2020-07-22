@@ -30,7 +30,7 @@
 #include <miopen/generic_search.hpp>
 #include <miopen/hip_build_utils.hpp>
 #include "implicitgemm_util.hpp"
-#include "wrw_invoke_params.hpp"
+#include <miopen/conv/wrw_invoke_params.hpp>
 
 namespace miopen {
 namespace solver {

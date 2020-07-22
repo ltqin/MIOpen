@@ -217,7 +217,7 @@ set( MIOpen_Source
     solver/conv_hip_implicit_gemm_v4r4_gen_xdlops_wrw_fp32.cpp
     solver/conv_hip_implicit_gemm_v4r4_gen_xdlops_wrw_fp16.cpp
     solver/conv_hip_implicit_gemm_xdlops_common.cpp
-    solver/conv_hip_implicit_gemm_nonxdlops_common.cpp
+    solver/conv_hip_implicit_gemm_nonxdlops_common.cpps
     solver/conv_hip_implicit_gemm_bwd_data_v1r1.cpp
     solver/conv_hip_implicit_gemm_bwd_data_v4r1.cpp
     solver/conv_hip_implicit_gemm_bwd_data_v1r1_xdlops.cpp

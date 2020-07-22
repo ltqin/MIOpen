@@ -155,7 +155,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             out_g_n_kpergroup_ho_wo_global_desc,
             make_tuple(PassThrough<G>{}, PassThrough<KPerGroup>{}, Merge<Sequence<N, Ho, Wo>>{}),
             make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1, 3, 4>{}),
-            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
 
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<

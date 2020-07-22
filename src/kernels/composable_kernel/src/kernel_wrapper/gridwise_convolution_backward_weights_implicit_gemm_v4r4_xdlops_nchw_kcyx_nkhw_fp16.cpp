@@ -1,5 +1,5 @@
 #include "common_header.hpp"
-#include "gridwise_convolution_forward_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw.hpp"
+#include "gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw.hpp"
 #include "float_types.h"
 
 extern "C" __global__
@@ -139,7 +139,7 @@ extern "C" __global__
     constexpr auto wkgrp_schd_order = NBlock1MBlock0;
 
     constexpr auto gridwise_conv =
-        GridwiseConvolutionForwardImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw<
+        GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw<
             GridSize,
             BlockSize,
             FLOAT,       // Input data type
@@ -174,5 +174,5 @@ extern "C" __global__
             GemmBBlockCopySrcDataPerRead_GemmN,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             wkgrp_schd_order>{};
-    //gridwise_conv.Run(p_in_global, p_wei_global, p_out_global);
+    gridwise_conv.Run(p_in_global, p_wei_global, p_out_global);
 }

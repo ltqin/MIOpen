@@ -159,7 +159,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr auto out_gemmg_gemmk_gemmm_gemmkpack_global_desc = transform_tensor_descriptor(
             out_gemmg_gemmktotal_gemmm_global_desc,
-            make_tuple(PassThrough<G>{}, UnMerge<Sequence<GemmK, GemmKPack>>{}, PassThrough<GemmM>{}{}),
+            make_tuple(PassThrough<G>{}, UnMerge<Sequence<GemmK, GemmKPack>>{}, PassThrough<GemmM>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
             make_tuple(Sequence<0>{}, Sequence<1,3>{}, Sequence<2>{}));
         // gridwise batch-GEMM

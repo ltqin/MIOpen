@@ -137,7 +137,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(
                 PassThrough<GemmG>{}, UnMerge<Sequence<GemmK, GemmKPack>>{}, PassThrough<GemmN>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
-            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1, 3>{}));
+            make_tuple(Sequence<0>{}, Sequence<2, 3>{}, Sequence<1>{}));
 
         // weight tensor
         constexpr auto wei_gemmg_gemmm_gemmktotal_global_desc = unfold_tensor_descriptor(

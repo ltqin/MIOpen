@@ -300,10 +300,8 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
     int ClusterLengths_GemmK     = -1;
     int ClusterLengths_GemmM     = -1;
     int ClusterLengths_GemmKPack = -1;
-    int SrcDataPerRead_GemmKPack = ctx.IsFp32() ? amd_buffer_load_max_length<float>()
-                                                : amd_buffer_load_max_length<half_float::half>();
-    int DstDataPerWrite_GemmKPack = ctx.IsFp32() ? amd_lds_write_max_length<float>()
-                                                 : amd_lds_write_max_length<half_float::half>();
+    int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
+    int DstDataPerWrite_GemmKPack = amd_lds_write_max_length<half_float::half>();
 
     try
     {
@@ -963,7 +961,7 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
     if(!IsXdlopsSupport(ctx))
         return false;
 
-    if(!(ctx.IsFp32() || ctx.IsFp16() || ctx.IsBfp16()))
+    if(!(ctx.IsFp16() || ctx.IsBfp16()))
         return false;
 
     if(!ctx.direction.IsBackwardWrW())

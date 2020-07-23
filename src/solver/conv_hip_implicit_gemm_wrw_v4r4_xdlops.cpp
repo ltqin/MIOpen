@@ -368,18 +368,18 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
         return std::make_tuple(-1, -1, -1, -1, -1, false);
     }
 
- /*  return std::make_tuple(ClusterLengths_GemmK,
+   return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmM,
                            ClusterLengths_GemmKPack,
                            SrcDataPerRead_GemmKPack,
                            DstDataPerWrite_GemmKPack,
-                           true);*/
-    return std::make_tuple(ClusterLengths_GemmK,
+                           true);
+    /*return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmM,
                            ClusterLengths_GemmKPack,
                            1,
                            1,
-                           true);
+                           true);*/
 }
 
 std::tuple<int, int, int, int, int, bool>
@@ -495,19 +495,19 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         return std::make_tuple(-1, -1, -1, -1, -1, false);
     }
 
-    /*return std::make_tuple(ClusterLengths_GemmK,
+    return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmN,
                            ClusterLengths_GemmKPack,
                            SrcDataPerRead_GemmN,
                            DstDataPerWrite_GemmKPack,
                            true);
-                           */
+    /*
     return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmN,
                            ClusterLengths_GemmKPack,
                            1,
                            1,
-                           true);
+                           true);*/
 }
 
 std::tuple<std::size_t, bool> PerformanceImplicitGemmWrwV4R4Xdlops::CalculateLdsNumberOfByte(

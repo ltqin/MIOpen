@@ -157,7 +157,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                 {
                     // list in reverse order of importance,
                     // and favor large GEMM
-                /*  if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
+                    if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
                         break;
                     if(!PreviousTwoPower<4, 8>(tmp.GemmKPack))
                         break;
@@ -169,9 +169,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 256>(tmp.GemmMPerBlock))
                         break;
-                 */
-                    tmp = {64, 64, 8, 64, 64, 1, false, true};
-
+                    
                     all_visited = true;
                 } while(false);
 
@@ -190,7 +188,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                 {
                     // list in reverse order of importance,
                     // and favor large GEMM
-                    /*if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
+                    if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
                         break;
                     if(!PreviousTwoPower<2, 8>(tmp.GemmKPack))
                         break;
@@ -202,8 +200,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 256>(tmp.GemmMPerBlock))
                         break;
-                    */
-                    tmp = {64, 64, 8, 64, 64, 1, false, true};
+                    
 
                     all_visited = true;
                 } while(false);

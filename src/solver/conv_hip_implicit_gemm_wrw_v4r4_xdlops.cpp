@@ -376,7 +376,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
                            true);*/
     return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmM,
-                           1,
+                           ClusterLengths_GemmKPack,
                            1,
                            1,
                            true);
@@ -504,7 +504,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
                            */
     return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmN,
-                           1,
+                           ClusterLengths_GemmKPack,
                            1,
                            1,
                            true);

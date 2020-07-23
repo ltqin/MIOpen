@@ -301,8 +301,8 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
     int ClusterLengths_GemmK     = -1;
     int ClusterLengths_GemmM     = -1;
     int ClusterLengths_GemmKPack = -1;
-    int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
-    int DstDataPerWrite_GemmKPack = amd_lds_write_max_length<half_float::half>();
+    int SrcDataPerRead_GemmKPack = 1;//amd_buffer_load_max_length<half_float::half>();
+    int DstDataPerWrite_GemmKPack = 1;//amd_lds_write_max_length<half_float::half>();
 
     try
     {
@@ -368,18 +368,12 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
         return std::make_tuple(-1, -1, -1, -1, -1, false);
     }
 
-   return std::make_tuple(ClusterLengths_GemmK,
+    return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmM,
                            ClusterLengths_GemmKPack,
                            SrcDataPerRead_GemmKPack,
                            DstDataPerWrite_GemmKPack,
                            true);
-    /*return std::make_tuple(ClusterLengths_GemmK,
-                           ClusterLengths_GemmM,
-                           ClusterLengths_GemmKPack,
-                           1,
-                           1,
-                           true);*/
 }
 
 std::tuple<int, int, int, int, int, bool>
@@ -391,10 +385,10 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
     int ClusterLengths_GemmK     = -1;
     int ClusterLengths_GemmN     = -1;
     int ClusterLengths_GemmKPack = -1;
-    int SrcDataPerRead_GemmN     = ctx.IsFp32() ? amd_buffer_load_max_length<float>()
-                                            : amd_buffer_load_max_length<half_float::half>();
-    int DstDataPerWrite_GemmKPack = ctx.IsFp32() ? amd_lds_write_max_length<float>()
-                                                 : amd_lds_write_max_length<half_float::half>();
+    int SrcDataPerRead_GemmN     = 1;//ctx.IsFp32() ? amd_buffer_load_max_length<float>()
+                                          //  : amd_buffer_load_max_length<half_float::half>();
+    int DstDataPerWrite_GemmKPack = 1;//ctx.IsFp32() ? amd_lds_write_max_length<float>()
+                                            //     : amd_lds_write_max_length<half_float::half>();
 
     try
     {
@@ -501,13 +495,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
                            SrcDataPerRead_GemmN,
                            DstDataPerWrite_GemmKPack,
                            true);
-    /*
-    return std::make_tuple(ClusterLengths_GemmK,
-                           ClusterLengths_GemmN,
-                           ClusterLengths_GemmKPack,
-                           1,
-                           1,
-                           true);*/
+   
 }
 
 std::tuple<std::size_t, bool> PerformanceImplicitGemmWrwV4R4Xdlops::CalculateLdsNumberOfByte(

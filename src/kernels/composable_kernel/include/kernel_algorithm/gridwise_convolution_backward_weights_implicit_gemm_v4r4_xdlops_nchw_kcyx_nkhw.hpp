@@ -190,7 +190,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             GemmBBlockCopyThreadClusterArrangeOrder,
             GemmBBlockCopySrcAccessOrder,
             GemmBBlockCopyDstAccessOrder,
-            3, // Src vetor read diemsnion of B matrix is GemmK
+            2, // Src vetor read diemsnion of B matrix is GemmN
             GemmBBlockCopySrcDataPerRead_GemmN,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             InMemoryDataOperation::Set,

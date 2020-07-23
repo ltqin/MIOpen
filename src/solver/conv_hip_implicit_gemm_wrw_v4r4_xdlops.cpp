@@ -368,11 +368,17 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
         return std::make_tuple(-1, -1, -1, -1, -1, false);
     }
 
-    return std::make_tuple(ClusterLengths_GemmK,
+ /*  return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmM,
                            ClusterLengths_GemmKPack,
                            SrcDataPerRead_GemmKPack,
                            DstDataPerWrite_GemmKPack,
+                           true);*/
+    return std::make_tuple(ClusterLengths_GemmK,
+                           ClusterLengths_GemmM,
+                           ClusterLengths_GemmKPack,
+                           1,
+                           1,
                            true);
 }
 
@@ -489,11 +495,18 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         return std::make_tuple(-1, -1, -1, -1, -1, false);
     }
 
-    return std::make_tuple(ClusterLengths_GemmK,
+    /*return std::make_tuple(ClusterLengths_GemmK,
                            ClusterLengths_GemmN,
                            ClusterLengths_GemmKPack,
                            SrcDataPerRead_GemmN,
                            DstDataPerWrite_GemmKPack,
+                           true);
+                           */
+    return std::make_tuple(ClusterLengths_GemmK,
+                           ClusterLengths_GemmN,
+                           ClusterLengths_GemmKPack,
+                           1,
+                           1,
                            true);
 }
 
@@ -770,8 +783,8 @@ ConvHipImplicitGemmWrwV4R4Xdlops::CalculateGemmSize(const ConvolutionContext& ct
 
     const auto gemm_g       = g;
     const auto gemm_m       = k_per_group;
-    const auto gemm_n       = n * ho * wo;
-    const auto gemm_k_total = c_per_group * y * x;
+    const auto gemm_n       = c_per_group * y * x;
+    const auto gemm_k_total = n * ho * wo;
 
     return std::make_tuple(gemm_g, gemm_m, gemm_n, gemm_k_total);
 }

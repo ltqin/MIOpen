@@ -140,7 +140,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr auto in_gemmg_gemmktotal_gemmn_global_desc = transform_tensor_descriptor(
             in_g_n_cpergroup_y_ho_x_wo_global_desc,
-            make_tuple(PassThrough<G>{}, Merge<Sequence<C, Y, X>>{}, Merge<Sequence<N, Ho, Wo>>{}),
+            make_tuple(PassThrough<G>{}, Merge<Sequence<CPerGroup, Y, X>>{}, Merge<Sequence<N, Ho, Wo>>{}),
             make_tuple(Sequence<0>{}, Sequence<2, 3, 5>{}, Sequence<1, 4, 6>{}),
             make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
 
@@ -156,9 +156,9 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = unfold_tensor_descriptor(
             wei_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{});
 
-        if(get_thread_local_1d_id() == 0/* && get_block_1d_id() == 0*/)
+        //if(get_thread_local_1d_id() == 0/* && get_block_1d_id() == 0*/)
         {
-            printf("\n ###########\nN=%d  C=%d Hi=%d Wi=%d\n ###########",N,C,Hi,Wi);
+            printf("\n ###########\n N=%d  C=%d Hi=%d Wi=%d\n ###########",N,C,Hi,Wi);
         }
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<
@@ -194,7 +194,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             InMemoryDataOperation::Set,
             WorkgroupSchdOrder>{};
 
-        //gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
+        gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
     }
 };
 

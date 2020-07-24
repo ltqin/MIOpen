@@ -89,7 +89,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         static_assert(GemmM % GemmMPerBlock == 0 && GemmN % GemmNPerBlock == 0 &&
                           GemmK % GemmKPerBlock == 0,
                       "wrong! cannot divide work evenly among block");
-
+        
         // construct tensor descriptor for group convolution
         constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, CPerGroup, Hi, Wi>{},
@@ -155,6 +155,11 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         // weight tensor  C matrix
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = unfold_tensor_descriptor(
             wei_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{});
+
+        if(get_thread_local_1d_id()==0 && get_block_1d_id() == 0)
+        {
+            printf("N=%d  C=%d Hi=%d Wi=%d",N,C,Hi,Wi);
+        }
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<
             GridSize,
@@ -189,7 +194,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             InMemoryDataOperation::Set,
             WorkgroupSchdOrder>{};
 
-        gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
+        //gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
     }
 };
 

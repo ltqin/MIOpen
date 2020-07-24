@@ -156,9 +156,9 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = unfold_tensor_descriptor(
             wei_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{});
 
-        if(get_thread_local_1d_id()==0 && get_block_1d_id() == 0)
+        if(get_thread_local_1d_id() == 0/* && get_block_1d_id() == 0*/)
         {
-            printf("N=%d  C=%d Hi=%d Wi=%d",N,C,Hi,Wi);
+            printf("\n ###########\nN=%d  C=%d Hi=%d Wi=%d\n ###########",N,C,Hi,Wi);
         }
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<

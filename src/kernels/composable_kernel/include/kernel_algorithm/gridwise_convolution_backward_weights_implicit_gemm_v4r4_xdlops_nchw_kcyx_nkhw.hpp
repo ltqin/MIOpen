@@ -107,13 +107,13 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             out_g_n_kpergroup_ho_wo_global_desc,
             make_tuple(PassThrough<G>{}, PassThrough<KPerGroup>{}, Merge<Sequence<N, Ho, Wo>>{}),
             make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1, 3, 4>{}),
-            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
+            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
 
         constexpr auto out_gemmg_gemmk_gemmm_gemmkpack_global_desc = transform_tensor_descriptor(
             out_gemmg_gemmktotal_gemmm_global_desc,
-            make_tuple(PassThrough<G>{}, PassThrough<GemmM>{}, UnMerge<Sequence<GemmK, GemmKPack>>{}),
+            make_tuple(PassThrough<G>{}, UnMerge<Sequence<GemmK, GemmKPack>>{}, PassThrough<GemmM>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
-            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1,3>{}));
+            make_tuple(Sequence<0>{}, Sequence<1,3>{}, Sequence<2>{}));
         // input tensor matrix B
         constexpr auto in_g_n_cpergroup_hip_wip_global_desc = transform_tensor_descriptor(
             in_g_n_cpergroup_hi_wi_global_desc,
@@ -183,7 +183,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             GemmBBlockCopyThreadClusterArrangeOrder,
             GemmBBlockCopySrcAccessOrder,
             GemmBBlockCopyDstAccessOrder,
-            3, // Src vetor read diemsnion of B matrix is GemmN
+            2, // Src vetor read diemsnion of B matrix is GemmN
             GemmBBlockCopySrcDataPerRead_GemmN,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             InMemoryDataOperation::Set,

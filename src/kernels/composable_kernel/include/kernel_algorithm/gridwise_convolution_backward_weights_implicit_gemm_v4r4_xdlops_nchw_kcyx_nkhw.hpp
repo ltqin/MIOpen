@@ -89,7 +89,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         static_assert(GemmM % GemmMPerBlock == 0 && GemmN % GemmNPerBlock == 0 &&
                           GemmK % GemmKPerBlock == 0,
                       "wrong! cannot divide work evenly among block");
-        static_assert(N == 128 && C == 1280 && Hi ==8 && Wi == 8 && K == 192 && Ho == 8 && Wo == 8 && X = 1 && Y == 1 && G==1, "input parameter error");
+        static_assert(N == 128 && C == 1280 && Hi ==8 && Wi == 8 && K == 192 && Ho == 8 && Wo == 8 && X == 1 && Y == 1 && G==1, "input parameter error");
         // construct tensor descriptor for group convolution
         constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, CPerGroup, Hi, Wi>{},

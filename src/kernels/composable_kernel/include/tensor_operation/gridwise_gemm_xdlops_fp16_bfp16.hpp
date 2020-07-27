@@ -981,7 +981,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
 
         // load data from xldop_acc_regs
         blockwise_gemm.XdlopsMatrixCRead(p_c_thread);
-
+/*
         // copy output: register to global memory
         {
             ///\todo inconsistent layout of xdlops and tensor
@@ -1010,7 +1010,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             constexpr index_t BlkSize = blockwise_gemm.GetBlkSize();
             constexpr index_t NumBlks = blockwise_gemm.GetNumBlks();
 
-           /* for(index_t i = 0; i < NumBlks; ++i)
+            for(index_t i = 0; i < NumBlks; ++i)
             {
                 // calculate origin of thread output tensor on global memory
                 //     blockwise GEMM c matrix starting index
@@ -1039,8 +1039,8 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                      m_thread_data_on_global % M2,
                      n_thread_data_on_global})
                     .Run(p_c_thread + i * BlkSize, p_c_global);
-            }*/
-        }
+            }
+        }*/
     }
 };
 

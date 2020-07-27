@@ -929,7 +929,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             a_blockwise_copy.Run(p_a_global, p_a_block);
             b_blockwise_copy.Run(p_b_global, p_b_block);
         }
-
+/*
         constexpr auto blockwise_a_copy_src_step = Sequence<0, KPerBlock, 0, 0>{};
         constexpr auto blockwise_b_copy_src_step = Sequence<0, KPerBlock, 0, 0>{};
 
@@ -1041,6 +1041,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                     .Run(p_c_thread + i * BlkSize, p_c_global);
             }
         }
+        */
     }
 };
 

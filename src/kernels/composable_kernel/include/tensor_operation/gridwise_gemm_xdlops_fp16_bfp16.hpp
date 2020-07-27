@@ -966,7 +966,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         }
 
         // tail
-        {
+/*        {
             block_sync_lds();
 
             // GEMM on last data
@@ -981,7 +981,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
 
         // load data from xldop_acc_regs
         blockwise_gemm.XdlopsMatrixCRead(p_c_thread);
-/*
+
         // copy output: register to global memory
         {
             ///\todo inconsistent layout of xdlops and tensor

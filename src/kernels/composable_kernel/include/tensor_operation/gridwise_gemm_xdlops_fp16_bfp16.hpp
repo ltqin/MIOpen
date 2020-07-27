@@ -807,10 +807,10 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr auto K     = b_g_k_n_kpack_global_desc.GetLengths()[1];
         constexpr auto KPack = b_g_k_n_kpack_global_desc.GetLengths()[3];
 
-        constexpr auto a_gemmk = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[1];
-        constexpr auto a_gemmm = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[2];
-        constexpr auto a_gemmkpack = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[3];
-        static_assert(a_gemmk == GemmK && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");
+        constexpr auto a_gemmk = a_g_k_m_kpack_global_desc.GetLengths()[1];
+        constexpr auto a_gemmm = a_g_k_m_kpack_global_desc.GetLengths()[2];
+        constexpr auto a_gemmkpack = a_g_k_m_kpack_global_desc.GetLengths()[3];
+        //static_assert(a_gemmk == GemmK && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");
         // divide block work by [M, N]
         static_assert(M % MPerBlock == 0 && N % NPerBlock == 0 && K % KPerBlock == 0,
                       "wrong! cannot divide work evenly among block");

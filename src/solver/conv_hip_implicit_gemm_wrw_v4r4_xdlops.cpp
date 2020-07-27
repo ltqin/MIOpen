@@ -36,7 +36,7 @@
 #include <miopen/tensor_ops.hpp>
 #include <miopen/implicitgemm_params.hpp>
 
-
+#define HIP_ENABLE_PRINTF
 namespace miopen {
 namespace solver {
 

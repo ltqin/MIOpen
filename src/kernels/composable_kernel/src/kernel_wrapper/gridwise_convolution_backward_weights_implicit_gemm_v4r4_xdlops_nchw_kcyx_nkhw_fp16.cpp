@@ -1,6 +1,7 @@
 #include "common_header.hpp"
 #include "gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw.hpp"
 #include "float_types.h"
+#define HIP_ENABLE_PRINTF
 
 extern "C" __global__
     __launch_bounds__(CK_PARAM_DEPENDENT_BLOCK_SIZE) void gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw_fp16(

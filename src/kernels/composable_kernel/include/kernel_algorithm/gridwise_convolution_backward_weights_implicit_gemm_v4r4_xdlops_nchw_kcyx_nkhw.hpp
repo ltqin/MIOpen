@@ -172,7 +172,11 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
         {
-            printf("\n ########### A matrix: %d  %d %d ",a_gemmk, a_gemmm,a_gemmkpack);
+            printf("\n #################\n
+                     A matrix: %d  %d %d \n
+                     B matrix: %d  %d %d \n
+                     C matrix: %d  %d \n
+                     ###################",a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack,c_gemm, c_gemmn);
         }
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<

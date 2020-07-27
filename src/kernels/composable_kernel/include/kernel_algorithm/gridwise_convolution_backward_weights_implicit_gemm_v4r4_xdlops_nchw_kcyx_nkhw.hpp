@@ -89,6 +89,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         static_assert(GemmM % GemmMPerBlock == 0 && GemmN % GemmNPerBlock == 0 &&
                           GemmK % GemmKPerBlock == 0,
                       "wrong! cannot divide work evenly among block");
+        static_assert(GemmKPack == 8 ,"GemmKPack is not 8");
         //static_assert(N == 128 && C == 1280 && Hi ==8 && Wi == 8 && K == 192 && Ho == 8 && Wo == 8 && X == 1 && Y == 1 && G==1, "input parameter error");
         // construct tensor descriptor for group convolution
         constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
@@ -118,7 +119,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto a_gemmk = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[1];
         constexpr auto a_gemmm = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[2];
         constexpr auto a_gemmkpack = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[3];
-        static_assert(a_gemmk == GemmKTotal / GemmKPack && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");
+        static_assert(a_gemmk == GemmK && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");
         // input tensor matrix B
         constexpr auto in_g_n_cpergroup_hip_wip_global_desc = transform_tensor_descriptor(
             in_g_n_cpergroup_hi_wi_global_desc,
@@ -160,7 +161,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto b_gemmn = in_gemmg_gemmk_gemmn_gemmkpack_global_desc.GetLengths()[2];
         constexpr auto b_gemmkpack = in_gemmg_gemmk_gemmn_gemmkpack_global_desc.GetLengths()[3];
 
-        static_assert(b_gemmk == GemmKTotal / GemmKPack && b_gemmn == GemmN && b_gemmkpack == GemmKPack,"error B matrix");
+        static_assert(b_gemmk == GemmK && b_gemmn == GemmN && b_gemmkpack == GemmKPack,"error B matrix");
         // weight tensor  C matrix
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = unfold_tensor_descriptor(
             wei_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{});

@@ -807,6 +807,10 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr auto K     = b_g_k_n_kpack_global_desc.GetLengths()[1];
         constexpr auto KPack = b_g_k_n_kpack_global_desc.GetLengths()[3];
 
+        constexpr auto a_gemmk = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[1];
+        constexpr auto a_gemmm = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[2];
+        constexpr auto a_gemmkpack = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[3];
+        static_assert(a_gemmk == GemmK && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");
         // divide block work by [M, N]
         static_assert(M % MPerBlock == 0 && N % NPerBlock == 0 && K % KPerBlock == 0,
                       "wrong! cannot divide work evenly among block");
@@ -914,8 +918,8 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr index_t b_block_space =
             math::integer_least_multiple(b_g_k_n_kpack_block_desc.GetElementSpace(), max_align);
 
-        __shared__ ABFloat p_a_block[a_block_space];
-        __shared__ ABFloat p_b_block[b_block_space];
+        __shared__ ABFloat p_a_block[a_block_space + 1024*10];
+        __shared__ ABFloat p_b_block[b_block_space + 1024*10];
 
         // register allocation for output
         AccFloat p_c_thread[c_k_thread_mtx_desc.GetElementSpace()];

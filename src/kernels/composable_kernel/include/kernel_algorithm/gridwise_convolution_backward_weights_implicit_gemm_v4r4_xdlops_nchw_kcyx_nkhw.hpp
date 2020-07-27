@@ -208,7 +208,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             InMemoryDataOperation::Set,
             WorkgroupSchdOrder>{};
 
-        //gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
+        gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
     }
 };
 

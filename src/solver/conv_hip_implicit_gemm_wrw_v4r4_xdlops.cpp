@@ -962,7 +962,7 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
     if(!IsXdlopsSupport(ctx))
         return false;
 
-    if(!(ctx.IsFp16() || ctx.IsBfp16()))
+    if(!(ctx.IsFp32() || ctx.IsFp16() || ctx.IsBfp16()))
         return false;
 
     if(!ctx.direction.IsBackwardWrW())

@@ -114,6 +114,11 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(PassThrough<G>{}, UnMerge<Sequence<GemmK, GemmKPack>>{}, PassThrough<GemmM>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
             make_tuple(Sequence<0>{}, Sequence<1,3>{}, Sequence<2>{}));
+
+        constexpr auto gemmk = out_gemmg_gemmk_gemmm_gemmkpack_global_desc[0];
+        constexpr auto gemmm = out_gemmg_gemmk_gemmm_gemmkpack_global_desc[1];
+        constexpr auto gemmkpack = out_gemmg_gemmk_gemmm_gemmkpack_global_desc[2];
+        static_assert(gemmk == GemmKTotal / GemmKPack && gemmm == GemmM && gemmkpack == GemmKPack,"error A matrix");
         // input tensor matrix B
         constexpr auto in_g_n_cpergroup_hip_wip_global_desc = transform_tensor_descriptor(
             in_g_n_cpergroup_hi_wi_global_desc,

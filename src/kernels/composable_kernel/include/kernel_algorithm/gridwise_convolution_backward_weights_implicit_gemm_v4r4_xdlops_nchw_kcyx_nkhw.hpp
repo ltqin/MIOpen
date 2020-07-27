@@ -89,7 +89,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         static_assert(GemmM % GemmMPerBlock == 0 && GemmN % GemmNPerBlock == 0 &&
                           GemmK % GemmKPerBlock == 0,
                       "wrong! cannot divide work evenly among block");
-        static_assert(N == 128 && C == 1280 && Hi ==8 && Wi == 8 && K == 192 && Ho == 8 && Wo == 8 && X == 1 && Y == 1 && G==1, "input parameter error");
+        //static_assert(N == 128 && C == 1280 && Hi ==8 && Wi == 8 && K == 192 && Ho == 8 && Wo == 8 && X == 1 && Y == 1 && G==1, "input parameter error");
         // construct tensor descriptor for group convolution
         constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, CPerGroup, Hi, Wi>{},
@@ -156,7 +156,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = unfold_tensor_descriptor(
             wei_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{});
 
-        //if(get_thread_local_1d_id() == 0/* && get_block_1d_id() == 0*/)
+        if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
         {
             printf("\n ###########\n N=%d  C=%d Hi=%d Wi=%d\n ###########",N,C,Hi,Wi);
         }

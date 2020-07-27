@@ -957,12 +957,12 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                 reinterpret_cast<const typename vector_type<ABFloat, KPack>::MemoryType*>(
                     p_b_block);
             blockwise_gemm.Run(p_a_block_vec, p_b_block_vec, p_c_thread);
-
+*/
             block_sync_lds();
 
             // store next data to LDS
             a_blockwise_copy.RunStoreThreadBuffer(p_a_thread_buffer, p_a_block);
-            b_blockwise_copy.RunStoreThreadBuffer(p_b_thread_buffer, p_b_block);*/
+            b_blockwise_copy.RunStoreThreadBuffer(p_b_thread_buffer, p_b_block);
         }
 
         // tail

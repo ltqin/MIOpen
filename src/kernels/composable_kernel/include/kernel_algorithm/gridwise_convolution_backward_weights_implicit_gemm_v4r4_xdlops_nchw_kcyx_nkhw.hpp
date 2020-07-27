@@ -118,7 +118,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto a_gemmk = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[1];
         constexpr auto a_gemmm = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[2];
         constexpr auto a_gemmkpack = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[3];
-        static_assert(gemmk == GemmKTotal / GemmKPack && gemmm == GemmM && gemmkpack == GemmKPack,"error A matrix");
+        static_assert(a_gemmk == GemmKTotal / GemmKPack && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");
         // input tensor matrix B
         constexpr auto in_g_n_cpergroup_hip_wip_global_desc = transform_tensor_descriptor(
             in_g_n_cpergroup_hi_wi_global_desc,

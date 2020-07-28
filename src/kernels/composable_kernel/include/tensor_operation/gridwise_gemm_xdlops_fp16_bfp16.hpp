@@ -933,7 +933,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         __shared__ ABFloat p_a_block[a_block_space];
         __shared__ ABFloat p_b_block[b_block_space];
         if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0){
-           printf("a matrix lds:%d  \t  b matrix lds:%d",a_block_space,b_block_space);
+           printf("\na matrix lds:%d  \t  b matrix lds:%d\n",a_block_space,b_block_space);
         }
 
         // register allocation for output

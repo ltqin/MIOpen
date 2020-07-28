@@ -793,7 +793,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
 {
     __device__ void Run(const ABFloat* const __restrict__ p_a_global,
                         const ABFloat* const __restrict__ p_b_global,
-                        CFloat* const __restrict__ ) const
+                        CFloat* const __restrict__ p_c_global) const
     {
         constexpr auto True = integral_constant<bool, true>{};
 

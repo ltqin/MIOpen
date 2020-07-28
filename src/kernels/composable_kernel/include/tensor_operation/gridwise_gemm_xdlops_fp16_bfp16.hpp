@@ -980,10 +980,10 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             block_sync_lds();
 
             // store next data to LDS
-            a_blockwise_copy.RunStoreThreadBuffer(p_a_thread_buffer, p_a_block);
+            //a_blockwise_copy.RunStoreThreadBuffer(p_a_thread_buffer, p_a_block);
             b_blockwise_copy.RunStoreThreadBuffer(p_b_thread_buffer, p_b_block);
         }
-/*
+
         // tail
         {
             block_sync_lds();
@@ -997,7 +997,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                     p_b_block);
             blockwise_gemm.Run(p_a_block_vec, p_b_block_vec, p_c_thread);
         }
-
+/*
         // load data from xldop_acc_regs
         blockwise_gemm.XdlopsMatrixCRead(p_c_thread);
 

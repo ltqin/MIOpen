@@ -106,19 +106,19 @@ struct BlockwiseGenericTensorSliceCopy_v4
     __device__ void RunStoreThreadBuffer(const ThreadBufferData* p_thread_buffer,
                                          BlockDstData* p_block_dst) const
     {
-       // constexpr bool has_optimized_address_calculation =
-       //     decltype(mThreadwiseStore)::HasWorkingOptimizedAddressCalculation();
+        constexpr bool has_optimized_address_calculation = true;
+            //decltype(mThreadwiseStore)::HasWorkingOptimizedAddressCalculation();
 
         if(BlockSize == mThreadClusterDesc.GetElementSize() or
            get_thread_local_1d_id() < mThreadClusterDesc.GetElementSize())
         {
             // TODO: threadwise copy is still being tweaked
-            /*if(has_optimized_address_calculation)
+            if(has_optimized_address_calculation)
             {
                 mThreadwiseStore.Run_optimized_dst_address_calculation(p_thread_buffer,
                                                                        p_block_dst);
             }
-            else*/
+            else
             {
                 mThreadwiseStore.Run(p_thread_buffer, p_block_dst);
             }

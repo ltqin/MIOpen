@@ -819,7 +819,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr auto c_gemmn = c_g_m_n_global_desc.GetLengths()[2];
         if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
         {
-            printf("\nGridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
+            printf("\nGridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix:gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix:gemmm = %d  gemmn = %d \n  ###################",
                      a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
         } 
         //static_assert(a_gemmk == GemmK && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");

@@ -470,7 +470,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
     __device__ static constexpr bool HasWorkingOptimizedAddressCalculation()
     {
 #if CK_EXPERIMENTAL_THREADWISE_COPY_V4R2_USE_OPTIMIZED_ADDRESS_CACLULATION // tweaking
-        return false;
+        return true;
 #else
         return false;
 #endif

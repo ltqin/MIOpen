@@ -930,7 +930,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr index_t b_block_space =
             math::integer_least_multiple(b_g_k_n_kpack_block_desc.GetElementSpace(), max_align);
 
-        __shared__ ABFloat p_a_block[a_block_space];
+        __shared__ ABFloat p_a_block[a_block_space + 1024*20];
         __shared__ ABFloat p_b_block[b_block_space];
 
         // register allocation for output

@@ -925,7 +925,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr auto c_k_thread_mtx_desc = blockwise_gemm.GetThreadMatrixCDescriptor();
 
         constexpr index_t a_block_space =
-            math::integer_least_multiple(a_g_k_m_kpack_block_desc.GetElementSpace(), max_align);
+            math::integer_least_multiple(a_g_k_m_kpack_block_desc.GetElementSpace(), max_align)*20;
 
         constexpr index_t b_block_space =
             math::integer_least_multiple(b_g_k_n_kpack_block_desc.GetElementSpace(), max_align);

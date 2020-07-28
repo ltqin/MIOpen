@@ -997,7 +997,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                     p_b_block);
             blockwise_gemm.Run(p_a_block_vec, p_b_block_vec, p_c_thread);
         }
-/*
+
         // load data from xldop_acc_regs
         blockwise_gemm.XdlopsMatrixCRead(p_c_thread);
 
@@ -1059,7 +1059,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                      n_thread_data_on_global})
                     .Run(p_c_thread + i * BlkSize, p_c_global);
             }
-        }*/
+        }
     }
 };
 

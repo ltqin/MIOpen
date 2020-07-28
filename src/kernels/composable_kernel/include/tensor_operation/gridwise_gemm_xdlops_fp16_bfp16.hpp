@@ -807,7 +807,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr auto K     = b_g_k_n_kpack_global_desc.GetLengths()[1];
         constexpr auto KPack = b_g_k_n_kpack_global_desc.GetLengths()[3];
 
-        /*constexpr auto a_gemmk = a_g_k_m_kpack_global_desc.GetLengths()[1];
+        constexpr auto a_gemmk = a_g_k_m_kpack_global_desc.GetLengths()[1];
         constexpr auto a_gemmm = a_g_k_m_kpack_global_desc.GetLengths()[2];
         constexpr auto a_gemmkpack = a_g_k_m_kpack_global_desc.GetLengths()[3];
 
@@ -821,7 +821,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         {
             printf("\nGridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
                      a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
-        }*/ 
+        } 
         //static_assert(a_gemmk == GemmK && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");
         // divide block work by [M, N]
         static_assert(M % MPerBlock == 0 && N % NPerBlock == 0 && K % KPerBlock == 0,
@@ -932,9 +932,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
 
         __shared__ ABFloat p_a_block[a_block_space];
         __shared__ ABFloat p_b_block[b_block_space];
-       if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0){
-           printf("a matrix lds:%d    b matrix lds:%d",a_block_space,b_block_space);
-       }
+        if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0){
+           printf("a matrix lds:%d  \t  b matrix lds:%d",a_block_space,b_block_space);
+        }
 
         // register allocation for output
         AccFloat p_c_thread[c_k_thread_mtx_desc.GetElementSpace()];

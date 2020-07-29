@@ -130,7 +130,7 @@ static auto GetDirectSolvers()
 
 static auto GetImplicitGemmSolvers()
 {
-    return miopen::solver::SolverContainer<miopen::solver::ConvHipImplicitGemmForwardV4R4Xdlops,
+    return miopen::solver::SolverContainer<miopen::solver::ConvHipImplicitGemmForwardV4R4Xdlops/*,
                                            miopen::solver::ConvHipImplicitGemmV4R4GenXdlopsFwdFp32,
                                            miopen::solver::ConvHipImplicitGemmV4R4GenFwdXdlops,
                                            miopen::solver::ConvHipImplicitGemmBwdDataV1R1Xdlops,
@@ -141,7 +141,7 @@ static auto GetImplicitGemmSolvers()
                                            miopen::solver::ConvHipImplicitGemmBwdDataV4R1,
                                            miopen::solver::ConvHipImplicitGemmBwdDataV4R1Xdlops,
                                            miopen::solver::ConvAsmImplicitGemmV4R1DynamicFwd_1x1,
-                                           miopen::solver::ConvAsmImplicitGemmV4R1DynamicFwd>{};
+                                           miopen::solver::ConvAsmImplicitGemmV4R1DynamicFwd*/>{};
 }
 
 static auto GetWindogradSolvers()

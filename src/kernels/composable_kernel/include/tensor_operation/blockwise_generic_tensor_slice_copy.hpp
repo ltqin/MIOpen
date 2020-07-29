@@ -192,7 +192,7 @@ struct BlockwiseGenericTensorSliceCopy_v4
                                                                   DstDimAccessOrder,
                                                                   DstVectorWriteDim,
                                                                   1,
-                                                                  DstDataPerWrite,
+                                                                  1,//DstDataPerWrite,
                                                                   ThreadBufferAddressSpace,
                                                                   DstAddressSpace,
                                                                   DstInMemOp,

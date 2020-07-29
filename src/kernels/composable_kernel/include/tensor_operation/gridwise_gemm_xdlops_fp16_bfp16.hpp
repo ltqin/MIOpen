@@ -982,6 +982,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             block_sync_lds();
 
             // store next data to LDS
+            if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0 && k_block_data_begin == 0){
+                printf("\na p_a_block address:%x  \t  p_a_thread_buffer address:%x\n",p_a_block,p_a_thread_buffer);
+            }
             a_blockwise_copy.RunStoreThreadBuffer(p_a_thread_buffer, p_a_block);
             b_blockwise_copy.RunStoreThreadBuffer(p_b_thread_buffer, p_b_block);
         }

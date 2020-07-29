@@ -967,11 +967,11 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             a_blockwise_copy.MoveSrcSliceWindow(blockwise_a_copy_src_step, True);
             b_blockwise_copy.MoveSrcSliceWindow(blockwise_b_copy_src_step, True);
 
-         /*   a_blockwise_copy.RunLoadThreadBuffer(p_a_global, p_a_thread_buffer);
+        /*    a_blockwise_copy.RunLoadThreadBuffer(p_a_global, p_a_thread_buffer);
             b_blockwise_copy.RunLoadThreadBuffer(p_b_global, p_b_thread_buffer);
 
             block_sync_lds();
-
+*/
             // GEMM on current data
             const typename vector_type<ABFloat, KPack>::MemoryType* p_a_block_vec =
                 reinterpret_cast<const typename vector_type<ABFloat, KPack>::MemoryType*>(
@@ -982,7 +982,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             blockwise_gemm.Run(p_a_block_vec, p_b_block_vec, p_c_thread);
 
             block_sync_lds();
-*/
+
             // store next data to LDS
             if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0){
                 printf("\np_a_thread_buffer:%p\t p_a_block:%p k_block_data_begin:%d",

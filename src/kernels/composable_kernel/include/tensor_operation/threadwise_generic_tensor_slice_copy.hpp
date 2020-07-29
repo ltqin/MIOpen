@@ -70,7 +70,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
     }
 
     template <typename SrcData, typename DstData>
-    __device__ void Run(const SrcData* p_src, DstData* ) const
+    __device__ void Run(const SrcData* p_src, DstData* p_dst) const
     {
         constexpr auto vector_access_dim = Number<SrcDstVectorReadWriteDim>{};
 

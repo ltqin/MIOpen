@@ -502,7 +502,7 @@ struct GridwiseBatchedGemmTransposedANormalBNormalCXdlopsFp16Bfp16_v1
             ABlockCopySrcVectorReadDim, // Src dim to be read in vector form (K dimension)
             3,                          // Dst dim to be written in vector form (KPACK dimension)
             ABlockCopySrcDataPerRead,
-            ABlockCopyDstDataPerWrite_KPACK,
+            1,//ABlockCopyDstDataPerWrite_KPACK,
             AddressSpace::Global,
             AddressSpace::Vgpr,
             AddressSpace::Lds,

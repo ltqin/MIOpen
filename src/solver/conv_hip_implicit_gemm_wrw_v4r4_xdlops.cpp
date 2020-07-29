@@ -148,8 +148,8 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
         }
         else if(ctx.IsFp16())
         {
-            tmp = {256, 256, 8, 128, 128, 8, false, true};
-
+            //tmp = {256, 256, 8, 128, 128, 8, false, true};
+            tmp = {256, 256, 8, 128, 128, 2, false, true};
             bool all_visited = false;
             do
             {
@@ -179,7 +179,8 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
         }
         else if(ctx.IsBfp16())
         {
-            tmp = {256, 256, 8, 128, 128, 8, false, true};
+           // tmp = {256, 256, 8, 128, 128, 8, false, true};
+            tmp = {256, 256, 8, 128, 128, 2, false, true};
 
             bool all_visited = false;
             do
@@ -301,8 +302,8 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
     int ClusterLengths_GemmK     = -1;
     int ClusterLengths_GemmM     = -1;
     int ClusterLengths_GemmKPack = -1;
-    int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
-    int DstDataPerWrite_GemmKPack = amd_lds_write_max_length<half_float::half>();
+    int SrcDataPerRead_GemmKPack = 1;//amd_buffer_load_max_length<half_float::half>();
+    int DstDataPerWrite_GemmKPack = 1;//amd_lds_write_max_length<half_float::half>();
 
     try
     {

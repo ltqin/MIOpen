@@ -983,7 +983,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
 
             // store next data to LDS
             if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0){
-                printf("k_block_data_begin:%d\t",k_block_data_begin);
+                printf("p_a_thread_buffer:%p\t p_a_block:%p k_block_data_begin:%d\t",&p_a_thread_buffer[0],&p_a_block[0],k_block_data_begin);
             }else
             {
                 continue;

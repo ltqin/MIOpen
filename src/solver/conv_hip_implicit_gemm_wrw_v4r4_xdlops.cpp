@@ -301,8 +301,8 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
     int ClusterLengths_GemmK     = -1;
     int ClusterLengths_GemmM     = -1;
     int ClusterLengths_GemmKPack = -1;
-    int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
-    int DstDataPerWrite_GemmKPack = amd_lds_write_max_length<half_float::half>();
+    int SrcDataPerRead_GemmKPack = 1;//amd_buffer_load_max_length<half_float::half>();
+    int DstDataPerWrite_GemmKPack = 1;//amd_lds_write_max_length<half_float::half>();
 
     try
     {
@@ -335,16 +335,16 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
         int data_per_thread_copy_gemmk = -1;
         int data_per_thread_copy_gemmm = -1;
 
-        //if(GemmAThreadCopyMoreGemmK)
+        if(GemmAThreadCopyMoreGemmK)
         {
             data_per_thread_copy_gemmk = gcd(GemmKPerBlock, tmp);
             data_per_thread_copy_gemmm = tmp / data_per_thread_copy_gemmk;
         }
-        /*else
+        else
         {
             data_per_thread_copy_gemmm = gcd(GemmMPerBlock, tmp);
             data_per_thread_copy_gemmk = tmp / data_per_thread_copy_gemmm;
-        }*/
+        }
 
         // vector write into LDS
         DstDataPerWrite_GemmKPack = gcd(DstDataPerWrite_GemmKPack, data_per_thread_copy_gemmkpack);
@@ -454,16 +454,16 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         int data_per_thread_copy_gemmkpack = -1;
         int data_per_thread_copy_gemmk     = -1;
 
-        //if(GemmBThreadCopyMoreGemmKPack)
+        if(GemmBThreadCopyMoreGemmKPack)
         {
             data_per_thread_copy_gemmkpack = gcd(GemmKPack, tmp);
             data_per_thread_copy_gemmk     = tmp / data_per_thread_copy_gemmkpack;
         }
-       /* else
+        else
         {
             data_per_thread_copy_gemmk     = gcd(GemmKPerBlock, tmp);
             data_per_thread_copy_gemmkpack = tmp / data_per_thread_copy_gemmk;
-        }*/
+        }
 
         // vector write into LDS
         DstDataPerWrite_GemmKPack = gcd(DstDataPerWrite_GemmKPack, data_per_thread_copy_gemmkpack);

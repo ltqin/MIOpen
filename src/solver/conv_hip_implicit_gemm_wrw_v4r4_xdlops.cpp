@@ -148,7 +148,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
         }
         else if(ctx.IsFp16())
         {
-            tmp = {128, 128, 8, 128, 128, 8, false, true};
+            tmp = {256, 256, 8, 128, 128, 8, false, true};
 
             bool all_visited = false;
             do
@@ -165,9 +165,9 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 128>(tmp.GemmMPerWave))
                         break;
-                    if(!PreviousTwoPower<4, 128>(tmp.GemmNPerBlock))
+                    if(!PreviousTwoPower<4, 256>(tmp.GemmNPerBlock))
                         break;
-                    if(!PreviousTwoPower<4, 128>(tmp.GemmMPerBlock))
+                    if(!PreviousTwoPower<4, 256>(tmp.GemmMPerBlock))
                         break;
                     
                     all_visited = true;
@@ -179,7 +179,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
         }
         else if(ctx.IsBfp16())
         {
-            tmp = {128, 128, 8, 128, 128, 8, false, true};
+            tmp = {256, 256, 8, 128, 128, 8, false, true};
 
             bool all_visited = false;
             do
@@ -196,9 +196,9 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 128>(tmp.GemmMPerWave))
                         break;
-                    if(!PreviousTwoPower<4, 128>(tmp.GemmNPerBlock))
+                    if(!PreviousTwoPower<4, 256>(tmp.GemmNPerBlock))
                         break;
-                    if(!PreviousTwoPower<4, 128>(tmp.GemmMPerBlock))
+                    if(!PreviousTwoPower<4, 256>(tmp.GemmMPerBlock))
                         break;
                     
 

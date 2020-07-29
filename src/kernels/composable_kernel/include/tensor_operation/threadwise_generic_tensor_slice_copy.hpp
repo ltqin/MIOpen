@@ -137,7 +137,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
             for(index_t i = 0; i < long_vector_size / dst_data_per_access; ++i)
             {
                 auto scalar_id               = make_zero_array<index_t, nDim>();
-                scalar_id(vector_access_dim) = i * dst_data_per_access;
+                scalar_id(vector_access_dim) = 0 * dst_data_per_access;
 
                 const index_t buffer_offset = 0 * dst_data_per_access;
 

@@ -195,7 +195,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             GemmABlockCopyDstAccessOrder,
             3, // src vector read dimension of A matrix is GemmKPack
             GemmABlockCopySrcDataPerRead_GemmKPack,
-            GemmABlockCopyDstDataPerWrite_GemmKPack,
+            1,//GemmABlockCopyDstDataPerWrite_GemmKPack,
             GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPack,
             GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPack,
             GemmBBlockCopyThreadClusterArrangeOrder,

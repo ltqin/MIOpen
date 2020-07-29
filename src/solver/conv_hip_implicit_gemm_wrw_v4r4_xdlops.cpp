@@ -335,16 +335,16 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
         int data_per_thread_copy_gemmk = -1;
         int data_per_thread_copy_gemmm = -1;
 
-        if(GemmAThreadCopyMoreGemmK)
+        //if(GemmAThreadCopyMoreGemmK)
         {
             data_per_thread_copy_gemmk = gcd(GemmKPerBlock, tmp);
             data_per_thread_copy_gemmm = tmp / data_per_thread_copy_gemmk;
         }
-        else
+        /*else
         {
             data_per_thread_copy_gemmm = gcd(GemmMPerBlock, tmp);
             data_per_thread_copy_gemmk = tmp / data_per_thread_copy_gemmm;
-        }
+        }*/
 
         // vector write into LDS
         DstDataPerWrite_GemmKPack = gcd(DstDataPerWrite_GemmKPack, data_per_thread_copy_gemmkpack);
@@ -454,16 +454,16 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         int data_per_thread_copy_gemmkpack = -1;
         int data_per_thread_copy_gemmk     = -1;
 
-        if(GemmBThreadCopyMoreGemmKPack)
+        //if(GemmBThreadCopyMoreGemmKPack)
         {
             data_per_thread_copy_gemmkpack = gcd(GemmKPack, tmp);
             data_per_thread_copy_gemmk     = tmp / data_per_thread_copy_gemmkpack;
         }
-        else
+       /* else
         {
             data_per_thread_copy_gemmk     = gcd(GemmKPerBlock, tmp);
             data_per_thread_copy_gemmkpack = tmp / data_per_thread_copy_gemmk;
-        }
+        }*/
 
         // vector write into LDS
         DstDataPerWrite_GemmKPack = gcd(DstDataPerWrite_GemmKPack, data_per_thread_copy_gemmkpack);

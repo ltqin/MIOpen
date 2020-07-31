@@ -87,6 +87,12 @@ extern "C" __global__
                  GemmABlockCopyThreadSliceLengths_GemmM,
                  GemmABlockCopyThreadSliceLengths_GemmKPack>;
 
+    if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
+    {
+        printf("\nA GemmABlockCopyClusterLengths_GemmK = %d  GemmABlockCopyClusterLengths_GemmM = %d GemmABlockCopyClusterLengths_GemmKPack = %d \n"
+               "GemmABlockCopyThreadSliceLengths_GemmK = %d  GemmABlockCopyThreadSliceLengths_GemmM = %d GemmABlockCopyThreadSliceLengths_GemmKPack = %d \n",
+                     GemmABlockCopyClusterLengths_GemmK, GemmABlockCopyClusterLengths_GemmM,GemmABlockCopyClusterLengths_GemmKPack, GemmABlockCopyThreadSliceLengths_GemmK, GemmABlockCopyThreadSliceLengths_GemmM, GemmABlockCopyThreadSliceLengths_GemmKPack);
+    }
     using GemmABlockCopyThreadClusterArrangeOrder =
         Sequence<0, 2, 1, 3>;                                  // [GemmG, GemmM, GemmK, GemmKPack]
     using GemmABlockCopySrcAccessOrder = Sequence<0, 2, 1, 3>; // [GemmG, GemmM, GemmK, GemmKPack]

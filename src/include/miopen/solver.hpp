@@ -1904,33 +1904,6 @@ struct gemm : SolverBase<ConvolutionContext>
 
 struct AnySolver;
 
-} // namespace solver
-} // namespace miopen
-
-struct mlo_construct_direct2D_fusion : mlo_construct_base
-{
-    mlo_construct_direct2D_fusion(miopen::conv::Direction dir, bool do_bias = false)
-        : mlo_construct_base(dir, do_bias)
-    {
-    }
-    mlo_construct_direct2D_fusion(const miopen::TensorDescriptor& in,
-                                  const miopen::TensorDescriptor& weights,
-                                  const miopen::TensorDescriptor& out,
-                                  const miopen::ConvolutionDescriptor& conv,
-                                  miopen::conv::Direction dir,
-                                  bool do_bias = false)
-        : mlo_construct_base(in, weights, out, conv, dir, do_bias)
-    {
-    }
-
-    inline void mloCopyTo(miopen::ConvolutionContext& params) const /// TODO: get rid of this
-    {
-        params = _search_params;
-    }
-    miopen::solver::ConvSolution
-    FindSolution(const std::vector<miopen::solver::AnySolver>& solvers);
-};
-
 struct PerformanceImplicitGemmWrwV4R4Xdlops
     : Serializable<PerformanceImplicitGemmWrwV4R4Xdlops>
 {
@@ -2000,4 +1973,31 @@ struct ConvHipImplicitGemmWrwV4R4Xdlops : SolverBase<ConvolutionContext>
                               const ConvSolution& solution,
                               float& elapsed_time) const;
 };
+} // namespace solver
+} // namespace miopen
+
+struct mlo_construct_direct2D_fusion : mlo_construct_base
+{
+    mlo_construct_direct2D_fusion(miopen::conv::Direction dir, bool do_bias = false)
+        : mlo_construct_base(dir, do_bias)
+    {
+    }
+    mlo_construct_direct2D_fusion(const miopen::TensorDescriptor& in,
+                                  const miopen::TensorDescriptor& weights,
+                                  const miopen::TensorDescriptor& out,
+                                  const miopen::ConvolutionDescriptor& conv,
+                                  miopen::conv::Direction dir,
+                                  bool do_bias = false)
+        : mlo_construct_base(in, weights, out, conv, dir, do_bias)
+    {
+    }
+
+    inline void mloCopyTo(miopen::ConvolutionContext& params) const /// TODO: get rid of this
+    {
+        params = _search_params;
+    }
+    miopen::solver::ConvSolution
+    FindSolution(const std::vector<miopen::solver::AnySolver>& solvers);
+};
+
 #endif // GUARD_MIOPEN_SOLVER_HPP_

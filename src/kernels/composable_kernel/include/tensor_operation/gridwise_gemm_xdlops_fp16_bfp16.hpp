@@ -967,10 +967,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             a_blockwise_copy.MoveSrcSliceWindow(blockwise_a_copy_src_step, True);
             b_blockwise_copy.MoveSrcSliceWindow(blockwise_b_copy_src_step, True);
 
+            //a_blockwise_copy.RunLoadThreadBuffer(p_a_global, p_a_thread_buffer);
             b_blockwise_copy.RunLoadThreadBuffer(p_b_global, p_b_thread_buffer);
-            a_blockwise_copy.RunLoadThreadBuffer(p_a_global, p_a_thread_buffer);
             
-
             block_sync_lds();
 
             // GEMM on current data
@@ -989,10 +988,9 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
                 printf("\np_a_thread_buffer:%p\t p_a_block:%p k_block_data_begin:%d",
                     static_cast<void*>(&p_a_thread_buffer[0]),static_cast<void*>(&p_a_block[0]),k_block_data_begin);
             }
-            
-            b_blockwise_copy.RunStoreThreadBuffer(p_b_thread_buffer, p_b_block);
+
             //a_blockwise_copy.RunStoreThreadBuffer(p_a_thread_buffer, p_a_block);
-            
+            b_blockwise_copy.RunStoreThreadBuffer(p_b_thread_buffer, p_b_block);
         }
 
         // tail

@@ -967,7 +967,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             a_blockwise_copy.MoveSrcSliceWindow(blockwise_a_copy_src_step, True);
             b_blockwise_copy.MoveSrcSliceWindow(blockwise_b_copy_src_step, True);
 
-            //b_blockwise_copy.RunLoadThreadBuffer(p_b_global, p_b_thread_buffer);
+            b_blockwise_copy.RunLoadThreadBuffer(p_b_global, p_b_thread_buffer);
             a_blockwise_copy.RunLoadThreadBuffer(p_a_global, p_a_thread_buffer);
             
 
@@ -991,7 +991,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             }
             
             b_blockwise_copy.RunStoreThreadBuffer(p_b_thread_buffer, p_b_block);
-            a_blockwise_copy.RunStoreThreadBuffer(p_a_thread_buffer, p_a_block);
+            //a_blockwise_copy.RunStoreThreadBuffer(p_a_thread_buffer, p_a_block);
             
         }
 

@@ -148,7 +148,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                            get_block_1d_id() ,get_thread_local_1d_id() ,
                            static_cast<void*>(&p_dst[0]), dst_coord.GetOffset(),
                            static_cast<void*>(&p_dst_long_vector[0]),buffer_offset,
-                           dst_data_per_access);
+                           (int)dst_data_per_access);
                 }
                 // Check dst data's valid mapping situation, only check the first data in this dst
                 //   vector. It's user's responsiblity to make sure all data in the dst vector

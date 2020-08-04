@@ -144,8 +144,10 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 const auto dst_coord = mDstSliceOrigin + (long_vector_data_begin_id + scalar_id);
                 if(bPrint)
                 {
-                    printf("\n block id:%d,threadid:%d ,  dst_coord:%d , buffer_offset: %d",
-                           get_block_1d_id() ,get_thread_local_1d_id() ,dst_coord.GetOffset(),buffer_offset);
+                    printf("\n block id:%d,threadid:%d , p_dst: %p  dst_coord:%d , p_dst_long_vector:%p buffer_offset: %d",
+                           get_block_1d_id() ,get_thread_local_1d_id() ,
+                           static_cast<void*>(&p_dst[0]), dst_coord.GetOffset(),
+                           static_cast<void*>(&p_dst_long_vector[0]),buffer_offset);
                 }
                 // Check dst data's valid mapping situation, only check the first data in this dst
                 //   vector. It's user's responsiblity to make sure all data in the dst vector

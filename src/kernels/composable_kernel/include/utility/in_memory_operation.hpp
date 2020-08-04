@@ -130,6 +130,7 @@ __device__ void transfer_data(const T* p_src, index_t src_offset, T* p_dst, inde
     {
         // TODO: use static_if::ElseIf
         static_if<DstInMemOp == InMemoryDataOperation::Set>{}([&](auto) {
+            printf("\n set data");
             SetData<T, DataPerAccess>{}.template Run<SrcAddressSpace, DstAddressSpace>(
                 p_src, src_offset, p_dst, dst_offset);
         });
@@ -141,6 +142,7 @@ __device__ void transfer_data(const T* p_src, index_t src_offset, T* p_dst, inde
     }
     else
     {
+        printf("\n else ")
         for(index_t i = 0; i < DataPerAccess; i++)
         {
             // TODO: use static_if::ElseIf

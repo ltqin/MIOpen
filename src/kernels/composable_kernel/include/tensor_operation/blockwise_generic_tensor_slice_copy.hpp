@@ -82,7 +82,7 @@ struct BlockwiseGenericTensorSliceCopy_v4
 
     template <typename BlockSrcData, typename ThreadBufferData>
     __device__ void RunLoadThreadBuffer(const BlockSrcData* p_block_src,
-                                        ThreadBufferData* p_thread_buffer) const
+                                        ThreadBufferData* p_thread_buffer,bool bPrint=false) const
     {
         constexpr bool has_optimized_address_calculation =
             decltype(mThreadwiseStore)::HasWorkingOptimizedAddressCalculation();
@@ -97,7 +97,7 @@ struct BlockwiseGenericTensorSliceCopy_v4
             }
             else
             {
-                mThreadwiseLoad.Run(p_block_src, p_thread_buffer);
+                mThreadwiseLoad.Run(p_block_src, p_thread_buffer,bPrint);
             }
         }
     }

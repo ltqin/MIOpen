@@ -70,7 +70,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
     }
 
     template <typename SrcData, typename DstData>
-    __device__ void Run(const SrcData* p_src, DstData* p_dst) const
+    __device__ void Run(const SrcData* p_src, DstData* p_dst,bool bPrint=false) const
     {
         constexpr auto vector_access_dim = Number<SrcDstVectorReadWriteDim>{};
 
@@ -142,8 +142,10 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 const index_t buffer_offset = i * dst_data_per_access;
 
                 const auto dst_coord = mDstSliceOrigin + (long_vector_data_begin_id + scalar_id);
-
-                //printf("\n block id:%d,threadid:%d ,  dst_coord:%d",get_block_1d_id() ,get_thread_local_1d_id() ,dst_coord.GetOffset());
+                if(bPrint)
+                {
+                    printf("\n block id:%d,threadid:%d ,  dst_coord:%d",get_block_1d_id() ,get_thread_local_1d_id() ,dst_coord.GetOffset());
+                }
                 // Check dst data's valid mapping situation, only check the first data in this dst
                 //   vector. It's user's responsiblity to make sure all data in the dst vector
                 //   has the valid/invalid mapping situation

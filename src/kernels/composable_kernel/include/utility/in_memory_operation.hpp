@@ -78,7 +78,7 @@ struct SetData
                   );
         }
         *reinterpret_cast<vector_t*>(&p_dst[dst_offset]) =
-            amd_buffer_load<T, DataPerAccess>(p_src, src_offset, 0);
+            amd_buffer_load<T, DataPerAccess>(p_src, src_offset/4, 0);
     }
 
     // buffer_store requires:

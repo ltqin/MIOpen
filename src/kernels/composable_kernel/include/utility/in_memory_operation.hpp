@@ -66,11 +66,15 @@ struct SetData
     {
         if(1)
         {
-            printf("\n block id:%d,threadid:%d , p_src: %p  src_offset:%d, DataPerAccess:%d",
+            printf("\n block id:%d,threadid:%d , p_src: %p  src_offset:%d, curr_p_src:%p,  DataPerAccess:%d, p_dst:%p, dst_offset:%d",
                    get_block_1d_id(),
                    get_thread_local_1d_id(),
+                   static_cast<const void*>(&p_src[0]),
+                   src_offset,
                    static_cast<const void*>(&p_src[src_offset]),
-                   src_offset,DataPerAccess
+                   DataPerAccess,
+                   static_cast<const void*>(&p_dst[0]),
+                   dst_offset
                   );
         }
         //*reinterpret_cast<vector_t*>(&p_dst[dst_offset]) =

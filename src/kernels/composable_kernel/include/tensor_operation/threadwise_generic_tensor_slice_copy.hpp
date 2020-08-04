@@ -113,7 +113,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 {
                     printf("\n block id:%d,threadid:%d , p_src: %p  src_coord:%d , p_src_long_vector:%p buffer_offset: %d, DstDataPerWrite:%d,SrcDataPerRead:%d",
                            get_block_1d_id() ,get_thread_local_1d_id() ,
-                           static_cast<void*>(&p_src[0]), src_coord.GetOffset(),
+                           static_cast<const void*>(&p_src[0]), src_coord.GetOffset(),
                            static_cast<void*>(&p_src_long_vector[0]),buffer_offset,
                            DstDataPerWrite,SrcDataPerRead);
                 }

@@ -120,7 +120,6 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 // Check src data's valid mapping situation, only check the first data in this src
                 //   vector. It's user's responsiblity to make sure all data in the src vector
                 //   has the valid/invalid mapping situation
-                if
                 if(src_coord.IsOffsetValidAssumingUpperIndexIsValid())
                 {
                     transfer_data<SrcData,

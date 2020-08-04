@@ -142,7 +142,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 const index_t buffer_offset = i * dst_data_per_access;
 
                 const auto dst_coord = mDstSliceOrigin + (long_vector_data_begin_id + scalar_id);
-                if(bPrint)
+                if(bPrint && dst_coord.GetOffset() > 1023)
                 {
                     printf("\n block id:%d,threadid:%d ,  dst_coord:%d",get_block_1d_id() ,get_thread_local_1d_id() ,dst_coord.GetOffset());
                 }

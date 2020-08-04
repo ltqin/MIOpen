@@ -74,8 +74,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
     {
         constexpr auto vector_access_dim = Number<SrcDstVectorReadWriteDim>{};
 
-        //constexpr auto src_data_per_access = Number<SrcDataPerRead>{};
-        constexpr auto src_data_per_access = Number<1>{};
+        constexpr auto src_data_per_access = Number<SrcDataPerRead>{};
         constexpr auto dst_data_per_access = Number<DstDataPerWrite>{};
 
         constexpr auto long_vector_size = Number<math::lcm(SrcDataPerRead, DstDataPerWrite)>{};
@@ -109,7 +108,15 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 const index_t buffer_offset = i * src_data_per_access;
 
                 const auto src_coord = mSrcSliceOrigin + (long_vector_data_begin_id + scalar_id);
-
+               
+                 if(bPrint)
+                {
+                    printf("\n block id:%d,threadid:%d , p_src: %p  src_coord:%d , p_src_long_vector:%p buffer_offset: %d, DstDataPerWrite:%d,SrcDataPerRead:%d",
+                           get_block_1d_id() ,get_thread_local_1d_id() ,
+                           static_cast<void*>(&p_src[0]), src_coord.GetOffset(),
+                           static_cast<void*>(&p_src_long_vector[0]),buffer_offset,
+                           DstDataPerWrite,SrcDataPerRead);
+                }
                 // Check src data's valid mapping situation, only check the first data in this src
                 //   vector. It's user's responsiblity to make sure all data in the src vector
                 //   has the valid/invalid mapping situation
@@ -143,7 +150,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 const index_t buffer_offset = i * dst_data_per_access;
 
                 const auto dst_coord = mDstSliceOrigin + (long_vector_data_begin_id + scalar_id);
-                if(bPrint)
+                if(0)
                 {
                     printf("\n block id:%d,threadid:%d , p_dst: %p  dst_coord:%d , p_dst_long_vector:%p buffer_offset: %d, dst_data_per_access:%d,SrcDataPerRead:%d",
                            get_block_1d_id() ,get_thread_local_1d_id() ,

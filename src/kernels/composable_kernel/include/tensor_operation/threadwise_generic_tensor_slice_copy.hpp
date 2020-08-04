@@ -74,7 +74,8 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
     {
         constexpr auto vector_access_dim = Number<SrcDstVectorReadWriteDim>{};
 
-        constexpr auto src_data_per_access = Number<SrcDataPerRead>{};
+        //constexpr auto src_data_per_access = Number<SrcDataPerRead>{};
+        constexpr auto src_data_per_access = Number<1>{};
         constexpr auto dst_data_per_access = Number<DstDataPerWrite>{};
 
         constexpr auto long_vector_size = Number<math::lcm(SrcDataPerRead, DstDataPerWrite)>{};

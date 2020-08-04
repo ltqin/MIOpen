@@ -162,18 +162,19 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 // Check dst data's valid mapping situation, only check the first data in this dst
                 //   vector. It's user's responsiblity to make sure all data in the dst vector
                 //   has the valid/invalid mapping situation
-                if(bPrint){
-                if(dst_coord.IsOffsetValidAssumingUpperIndexIsValid())
+                if(bPrint)
                 {
-                    transfer_data<DstData,
-                                  DstDataPerWrite,
-                                  AddressSpace::Vgpr,
-                                  DstAddressSpace,
-                                  DstInMemOp,
-                                  1,
-                                  DstDataStride>(
-                        p_dst_long_vector, buffer_offset, p_dst, dst_coord.GetOffset());
-                }
+                    if(dst_coord.IsOffsetValidAssumingUpperIndexIsValid())
+                    {
+                        transfer_data<DstData,
+                                      DstDataPerWrite,
+                                      AddressSpace::Vgpr,
+                                      DstAddressSpace,
+                                      DstInMemOp,
+                                      1,
+                                      DstDataStride>(
+                            p_dst_long_vector, buffer_offset, p_dst, dst_coord.GetOffset());
+                    }
                 }
             }
         });

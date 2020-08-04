@@ -142,7 +142,7 @@ __device__ void transfer_data(const T* p_src, index_t src_offset, T* p_dst, inde
     }
     else
     {
-        printf("\n else ")
+        printf("\n else ");
         for(index_t i = 0; i < DataPerAccess; i++)
         {
             // TODO: use static_if::ElseIf

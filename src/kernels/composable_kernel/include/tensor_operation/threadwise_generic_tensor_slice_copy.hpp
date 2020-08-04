@@ -142,7 +142,7 @@ struct ThreadwiseGenericTensorSliceCopy_v4r2
                 const index_t buffer_offset = i * dst_data_per_access;
 
                 const auto dst_coord = mDstSliceOrigin + (long_vector_data_begin_id + scalar_id);
-
+                printf("\n dst_coord:%d",dst_coord.GetOffset());
                 // Check dst data's valid mapping situation, only check the first data in this dst
                 //   vector. It's user's responsiblity to make sure all data in the dst vector
                 //   has the valid/invalid mapping situation

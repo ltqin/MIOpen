@@ -46,8 +46,8 @@ template <index_t GridSize,
 struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 {
     __device__ void Run(const Float* const __restrict__ p_in_global,
-                        Float* const __restrict__ p_wei_global,
-                        const Float* const __restrict__ p_out_global) const
+                        const Float* const __restrict__ p_wei_global,
+                        Float* const __restrict__ p_out_global) const
     {
         constexpr auto in_n_c_hi_wi_global_desc        = InGlobalDesc{};
         constexpr auto wei_k_cpergroup_y_x_global_desc = WeiGlobalDesc{};
@@ -168,11 +168,11 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];
         static_assert(c_gemmn == GemmN && c_gemmm == GemmM,"error C matrix");
 
-        if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
+        /*if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
         {
             printf("\nGridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
                      a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
-        }
+        }*/
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<
             GridSize,
@@ -207,7 +207,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             InMemoryDataOperation::Set,
             WorkgroupSchdOrder>{};
 
-        gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
+        gridwise_gemm.Run(p_wei_global, p_in_global, p_out_global);
     }
 };
 

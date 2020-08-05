@@ -961,7 +961,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
             k_block_data_begin += KPerBlock)
         {
             ABFloat p_a_thread_buffer[a_blockwise_copy.GetThreadBufferSize()];
-            //ABFloat p_b_thread_buffer[b_blockwise_copy.GetThreadBufferSize()];
+            ABFloat p_b_thread_buffer[b_blockwise_copy.GetThreadBufferSize()];
 
             // load next data from device mem
             a_blockwise_copy.MoveSrcSliceWindow(blockwise_a_copy_src_step, True);

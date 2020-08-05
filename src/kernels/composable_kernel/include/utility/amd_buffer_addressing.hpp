@@ -228,6 +228,15 @@ __device__ float4_t amd_buffer_load<float, 4>(const float* p_src_block,
     index_t src_thread_addr_offset = src_thread_data_offset * sizeof(float);
     index_t src_const_addr_offset  = src_const_data_offset * sizeof(float);
 
+    if(1)
+    {
+        printf("\n block id:%d, threadid:%d , p_src_block: %p  src_thread_addr_offset:%d, src_const_addr_offset:%d  ",
+               get_block_1d_id(),
+               get_thread_local_1d_id(),
+               const_cast<void*>(p_src_block),
+               src_thread_addr_offset,
+               src_const_addr_offset);
+    }
     return __llvm_amdgcn_buffer_load_f32x4(
         src_block_config.data, 0, src_thread_addr_offset + src_const_addr_offset, false, false);
 }

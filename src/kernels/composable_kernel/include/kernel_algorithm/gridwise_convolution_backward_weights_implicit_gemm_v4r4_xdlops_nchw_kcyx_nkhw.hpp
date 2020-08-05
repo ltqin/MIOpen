@@ -174,7 +174,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             //       static_cast<const void*>(p_out_global),
             //        static_cast<const void*>(&p_out_global[N*K*Ho*Wo - 1]));
             printf("\n p_wei_global:%p p_wei_global_end:%p, p_in_global:%p, p_in_global_end:%p, p_out_global:%p, p_out_global_end:%p",
-                   static_cast<void*>(p_wei_global),
+                   static_cast<const void*>(p_wei_global),
                    static_cast<const void*>(&p_wei_global[K*C*X*Y-1]),
                    static_cast<const void*>(p_in_global),
                    static_cast<const void*>(&p_in_global[N*C*Hi*Wi-1]),

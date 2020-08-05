@@ -170,12 +170,13 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 1)
         {
-            printf("\n p_wei_global:%p  p_in_global:%p p_out_global:%p",
+            printf("\n p_wei_global:%p p_wei_global_end:%p, p_in_global:%p p_out_global:%p",
                    static_cast<void*>(p_wei_global),
+                   static_cast<void*>(&p_wei_global[N*K*Ho*Wo - 1]),
                    static_cast<const void*>(p_in_global),
                    static_cast<const void*>(p_out_global));
-            printf("\nGridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
-                     a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
+            //printf("\nGridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
+            //         a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
         }
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<

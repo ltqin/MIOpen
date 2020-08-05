@@ -1242,7 +1242,7 @@ int ConvDriver<Tgpu, Tref>::AllocateBuffersAndCopy()
     if(is_fwd || is_wrw)
     {
         in_dev = std::unique_ptr<GPUMem>(new GPUMem(ctx, in_sz, sizeof(Tgpu)));
-        std::cout << "in buffer address: " << in_dev->GetMem() << " end: " << static_cast<char*>(in_dev->GetMem()) + in_dev->GetSize() <<  "  size:" << in_dev->GetSize() << std::endl;
+        std::cout << "in buffer address: " << in_dev->GetMem() << "  size:" << in_dev->GetSize() << std::endl;
         status |= in_dev->ToGPU(q, in.data.data());
     }
     if(is_bwd)
@@ -1258,13 +1258,13 @@ int ConvDriver<Tgpu, Tref>::AllocateBuffersAndCopy()
     if(is_wrw)
     {
         dwei_dev = std::unique_ptr<GPUMem>(new GPUMem(ctx, wei_sz, sizeof(Tgpu)));
-        std::cout << "wei buffer address: " << dwei_dev->GetMem() << " end: " << static_cast<char*>(dwei_dev->GetMem()) + dwei_dev->GetSize() <<  "  size:" << dwei_dev->GetSize() << std::endl;
+        std::cout << "wei buffer address: " << dwei_dev->GetMem() << "  size:" << dwei_dev->GetSize() << std::endl;
         status |= dwei_dev->ToGPU(q, dwei.data());
     }
     if(is_bwd || is_wrw)
     {
         dout_dev = std::unique_ptr<GPUMem>(new GPUMem(ctx, out_sz, sizeof(Tgpu)));
-        std::cout << "out buffer address: " << dout_dev->GetMem() << " end: " << static_cast<char*>(dout_dev->GetMem()) + dout_dev->GetSize() <<  "  size:" << dout_dev->GetSize() << std::endl;
+        std::cout << "out buffer address: " << dout_dev->GetMem() <<   "  size:" << dout_dev->GetSize() << std::endl;
         status |= dout_dev->ToGPU(q, dout.data.data());
     }
     if(is_fwd)

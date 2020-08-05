@@ -238,7 +238,7 @@ __device__ float4_t amd_buffer_load<float, 4>(const float* p_src_block,
                src_const_addr_offset);
     }
     return __llvm_amdgcn_buffer_load_f32x4(
-        src_block_config.data, 0, src_thread_addr_offset/2 + src_const_addr_offset, false, false);
+        src_block_config.data, 0, src_thread_addr_offset/4 + src_const_addr_offset, false, false);
 }
 
 template <>

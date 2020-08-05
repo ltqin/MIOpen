@@ -64,7 +64,7 @@ struct SetData
                                                                   T* p_dst,
                                                                   index_t dst_offset) const
     {
-        if(1)
+        if(src_offset > 1571800)
         {
             printf("\n block id:%d,threadid:%d , p_src: %p  src_offset:%d, curr_p_src:%p,  DataPerAccess:%d, p_dst:%p, dst_offset:%d,sizeof(T):%ld",
                    get_block_1d_id(),

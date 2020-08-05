@@ -170,7 +170,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         //if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 1)
         {
-            printf("\n p_wei_global:%p p_wei_global_end:%p, p_in_global:%p p_out_global:%p",
+            printf("\n p_wei_global:%p p_wei_global_end:%p, p_in_global:%p, p_in_global_end:%p, p_out_global:%p, p_out_global_end:%p",
                    static_cast<void*>(p_wei_global),
                    static_cast<void*>(&p_wei_global[K*C*X*Y-1]),
                    static_cast<const void*>(p_in_global),

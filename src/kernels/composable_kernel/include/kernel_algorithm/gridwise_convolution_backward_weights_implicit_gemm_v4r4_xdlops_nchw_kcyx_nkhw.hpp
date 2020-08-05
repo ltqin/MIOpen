@@ -46,8 +46,8 @@ template <index_t GridSize,
 struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 {
     __device__ void Run(const Float* const __restrict__ p_in_global,
-                        Float* const __restrict__ p_wei_global,
-                        const Float* const __restrict__ p_out_global) const
+                        const Float* const __restrict__ p_wei_global,
+                        Float* const __restrict__ p_out_global) const
     {
         constexpr auto in_n_c_hi_wi_global_desc        = InGlobalDesc{};
         constexpr auto wei_k_cpergroup_y_x_global_desc = WeiGlobalDesc{};

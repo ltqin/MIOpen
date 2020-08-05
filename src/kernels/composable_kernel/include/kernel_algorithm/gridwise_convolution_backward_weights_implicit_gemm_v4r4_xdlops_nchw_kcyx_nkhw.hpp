@@ -168,7 +168,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];
         static_assert(c_gemmn == GemmN && c_gemmm == GemmM,"error C matrix");
 
-        if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
+        if(1)//get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
         {
             printf("\n p_wei_global:%p  p_in_global:%p p_out_global:%p",
                    static_cast<void*>(p_wei_global),

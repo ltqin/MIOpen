@@ -172,9 +172,11 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         {
             printf("\n p_wei_global:%p p_wei_global_end:%p, p_in_global:%p p_out_global:%p",
                    static_cast<void*>(p_wei_global),
-                   static_cast<void*>(&p_wei_global[N*K*Ho*Wo - 1]),
+                   static_cast<void*>(&p_wei_global[K*C*X*Y-1]),
                    static_cast<const void*>(p_in_global),
-                   static_cast<const void*>(p_out_global));
+                   static_cast<const void*>(&p_in_global[N*C*Hi*Wi-1]),
+                   static_cast<const void*>(p_out_global),
+                    static_cast<const void*>(&p_out_global[N*K*Ho*Wo - 1]));
             //printf("\nGridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
             //         a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
         }

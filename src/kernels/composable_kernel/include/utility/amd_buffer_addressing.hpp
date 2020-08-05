@@ -233,7 +233,7 @@ __device__ float4_t amd_buffer_load<float, 4>(const float* p_src_block,
         printf("\n block id:%d, threadid:%d , p_src_block: %p  src_thread_addr_offset:%d, src_const_addr_offset:%d  ",
                get_block_1d_id(),
                get_thread_local_1d_id(),
-               const_cast<const void*>(p_src_block),
+               static_cast<const void*>(p_src_block),
                src_thread_addr_offset,
                src_const_addr_offset);
     }

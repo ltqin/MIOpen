@@ -1262,7 +1262,7 @@ int ConvDriver<Tgpu, Tref>::AllocateBuffersAndCopy()
     if(is_bwd || is_wrw)
     {
         dout_dev = std::unique_ptr<GPUMem>(new GPUMem(ctx, out_sz, sizeof(Tgpu)));
-        std::cout << "buffer address: " << dout_dev->GetMem() << " end: " << dout_dev->GetMem() + dout_dev->GetSize() <<  "  size:" << dout_dev->GetSize() << std::endl;
+        std::cout << "buffer address: " << dout_dev->GetMem() << " end: " << static_cast<float*>(dout_dev->GetMem()) + dout_dev->GetSize() <<  "  size:" << dout_dev->GetSize() << std::endl;
         status |= dout_dev->ToGPU(q, dout.data.data());
     }
     if(is_fwd)

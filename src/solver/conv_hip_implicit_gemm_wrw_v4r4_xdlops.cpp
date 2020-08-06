@@ -301,8 +301,12 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
     int ClusterLengths_GemmK     = -1;
     int ClusterLengths_GemmM     = -1;
     int ClusterLengths_GemmKPack = -1;
-    int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
-    int DstDataPerWrite_GemmKPack = 1;//amd_lds_write_max_length<half_float::half>();
+    int SrcDataPerRead_GemmKPack = ctx.IsFp32() ? amd_buffer_load_max_length<float>()
+                                                : amd_buffer_load_max_length<half_float::half>();
+    int DstDataPerWrite_GemmKPack = ctx.IsFp32() ? amd_lds_write_max_length<float>()
+                                                 : amd_lds_write_max_length<half_float::half>();
+    //int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
+    //int DstDataPerWrite_GemmKPack = 1;//amd_lds_write_max_length<half_float::half>();
 
     try
     {

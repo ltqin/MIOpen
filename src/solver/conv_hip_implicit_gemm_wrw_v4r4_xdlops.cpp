@@ -321,7 +321,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
         
         // GemmKPack is src vector read dimension, bounded by GemmKPack
         SrcDataPerRead_GemmKPack = gcd(SrcDataPerRead_GemmKPack, GemmKPack);
-        
+
         //GemmPack bounded by ho*wo
         const auto ho = ConvolutionContextInterpreter::GetOutputHeightHo(ctx);
         const auto wo = ConvolutionContextInterpreter::GetOutputWidthWo(ctx);
@@ -394,7 +394,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
     int ClusterLengths_GemmK     = -1;
     int ClusterLengths_GemmN     = -1;
     int ClusterLengths_GemmKPack = -1;
-    int SrcDataPerRead_GemmN     =  1;//amd_buffer_load_max_length<half_float::half>();
+    int SrcDataPerRead_GemmN     =  amd_buffer_load_max_length<half_float::half>();
     int DstDataPerWrite_GemmKPack =  1; //amd_lds_write_max_length<half_float::half>();
 
     try

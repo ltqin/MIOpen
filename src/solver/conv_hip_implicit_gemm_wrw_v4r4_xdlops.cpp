@@ -318,9 +318,14 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
 
         if(!valid)
             MIOPEN_THROW("invalid performance parameter");
-
+        
         // GemmKPack is src vector read dimension, bounded by GemmKPack
         SrcDataPerRead_GemmKPack = gcd(SrcDataPerRead_GemmKPack, GemmKPack);
+        
+        //GemmPack bounded by ho*wo
+        const auto ho = ConvolutionContextInterpreter::GetOutputHeightHo(ctx);
+        const auto wo = ConvolutionContextInterpreter::GetOutputWidthWo(ctx);
+        SrcDataPerRead_GemmKPack = gcd(SrcDataPerRead_GemmKPack, ho*wo);
 
         // calculate threadwise copy size
         auto data_per_thread_copy =

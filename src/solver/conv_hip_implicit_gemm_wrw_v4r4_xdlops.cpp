@@ -391,7 +391,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
     int ClusterLengths_GemmN     = -1;
     int ClusterLengths_GemmKPack = -1;
 
-    int ScrDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
+    int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
     //int SrcDataPerRead_GemmN     =  amd_buffer_load_max_length<half_float::half>();
     int DstDataPerWrite_GemmKPack =  amd_lds_write_max_length<half_float::half>();
 
@@ -429,21 +429,21 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
            in_left_pad_w == 0 && in_right_pad_h == 0 && in_right_pad_w == 0)
         {
             //SrcDataPerRead_GemmN = gcd(SrcDataPerRead_GemmN, ho * wo);
-            ScrDataPerRead_GemmKPack = gcd(ScrDataPerRead_GemmKPack, ho * wo);
+            SrcDataPerRead_GemmKPack = gcd(SrcDataPerRead_GemmKPack, ho * wo);
         }
         else if(conv_stride_w == 1 && in_left_pad_w == 0 && in_right_pad_w == 0)
         {
             //SrcDataPerRead_GemmN = gcd(SrcDataPerRead_GemmN, wo);
-            ScrDataPerRead_GemmKPack = gcd(ScrDataPerRead_GemmKPack, wo);
+            SrcDataPerRead_GemmKPack = gcd(SrcDataPerRead_GemmKPack, wo);
         }
         else if(conv_stride_w == 1)
         {
-            ScrDataPerRead_GemmKPack =
-                gcd(ScrDataPerRead_GemmKPack, wo, in_left_pad_w, in_right_pad_w, conv_dilation_w);
+            SrcDataPerRead_GemmKPack =
+                gcd(SrcDataPerRead_GemmKPack, wo, in_left_pad_w, in_right_pad_w, conv_dilation_w);
         }
         else
         {
-            SrcDataPerRead_GemmN = 1;
+            SrcDataPerRead_GemmKPack = 1;
         }
 
         // SrcDataPerRead_GemmKPack also bounded by GemmKPack

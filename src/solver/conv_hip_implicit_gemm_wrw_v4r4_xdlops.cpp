@@ -304,9 +304,6 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
                                                 : amd_buffer_load_max_length<half_float::half>();
     int DstDataPerWrite_GemmKPack = ctx.IsFp32() ? amd_lds_write_max_length<float>()
                                                  : amd_lds_write_max_length<half_float::half>();
-    //int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
-    //int DstDataPerWrite_GemmKPack = 1;//amd_lds_write_max_length<half_float::half>();
-
     try
     {
         bool valid = false;
@@ -389,11 +386,13 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
     const ConvolutionContext& ctx) const
 {
     // B tensor shape [GemmG, GemmK, GemmN, GemmKPack]
-
+    // vector load should GemmKPack or GemmK
     int ClusterLengths_GemmK     = -1;
     int ClusterLengths_GemmN     = -1;
     int ClusterLengths_GemmKPack = -1;
-    int SrcDataPerRead_GemmN     =  amd_buffer_load_max_length<half_float::half>();
+
+    int ScrDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
+    //int SrcDataPerRead_GemmN     =  amd_buffer_load_max_length<half_float::half>();
     int DstDataPerWrite_GemmKPack =  amd_lds_write_max_length<half_float::half>();
 
     try
@@ -429,24 +428,26 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         if(y == 1 && x == 1 && conv_stride_h == 1 && conv_stride_w == 1 && in_left_pad_h == 0 &&
            in_left_pad_w == 0 && in_right_pad_h == 0 && in_right_pad_w == 0)
         {
-            SrcDataPerRead_GemmN = gcd(SrcDataPerRead_GemmN, ho * wo);
+            //SrcDataPerRead_GemmN = gcd(SrcDataPerRead_GemmN, ho * wo);
+            ScrDataPerRead_GemmKPack = gcd(ScrDataPerRead_GemmKPack, ho * wo);
         }
         else if(conv_stride_w == 1 && in_left_pad_w == 0 && in_right_pad_w == 0)
         {
-            SrcDataPerRead_GemmN = gcd(SrcDataPerRead_GemmN, wo);
+            //SrcDataPerRead_GemmN = gcd(SrcDataPerRead_GemmN, wo);
+            ScrDataPerRead_GemmKPack = gcd(ScrDataPerRead_GemmKPack, wo);
         }
         else if(conv_stride_w == 1)
         {
-            SrcDataPerRead_GemmN =
-                gcd(SrcDataPerRead_GemmN, wo, in_left_pad_w, in_right_pad_w, conv_dilation_w);
+            ScrDataPerRead_GemmKPack =
+                gcd(ScrDataPerRead_GemmKPack, wo, in_left_pad_w, in_right_pad_w, conv_dilation_w);
         }
         else
         {
             SrcDataPerRead_GemmN = 1;
         }
 
-        // SrcDataPerRead_GemmN also bounded by GemmNPerBlock
-        SrcDataPerRead_GemmN = gcd(SrcDataPerRead_GemmN, GemmNPerBlock);
+        // SrcDataPerRead_GemmKPack also bounded by GemmKPack
+        SrcDataPerRead_GemmKPack = gcd(SrcDataPerRead_GemmKPack, GemmKPack);
 
         // calculate threadwise copy size
         auto data_per_thread_copy = 
@@ -454,23 +455,23 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
 
         // make sure a thread can do a full vector load, at the cost that some threads
         // may not do threadwise copy at all
-        data_per_thread_copy = lcm(data_per_thread_copy, SrcDataPerRead_GemmN);
+        data_per_thread_copy = lcm(data_per_thread_copy, SrcDataPerRead_GemmKPack);
 
-        const auto data_per_thread_copy_gemmn = SrcDataPerRead_GemmN;
-        const auto tmp                        = data_per_thread_copy / data_per_thread_copy_gemmn;
+        const auto data_per_thread_copy_gemmkpack = SrcDataPerRead_GemmKPack;
+        const auto tmp                        = data_per_thread_copy / data_per_thread_copy_gemmkpack;
 
-        int data_per_thread_copy_gemmkpack = -1;
-        int data_per_thread_copy_gemmk     = -1;
+        int data_per_thread_copy_gemmn = -1;
+        int data_per_thread_copy_gemmk = -1;
 
         if(GemmBThreadCopyMoreGemmKPack)
         {
-            data_per_thread_copy_gemmkpack = gcd(GemmKPack, tmp);
-            data_per_thread_copy_gemmk     = tmp / data_per_thread_copy_gemmkpack;
+            data_per_thread_copy_gemmk = gcd(GemmKPerBlock, tmp);
+            data_per_thread_copy_gemmn = tmp / data_per_thread_copy_gemmk;
         }
         else
         {
-            data_per_thread_copy_gemmk     = gcd(GemmKPerBlock, tmp);
-            data_per_thread_copy_gemmkpack = tmp / data_per_thread_copy_gemmk;
+            data_per_thread_copy_gemmn = gcd(GemmKPerBlock, tmp);
+            data_per_thread_copy_gemmk = tmp / data_per_thread_copy_gemmk;
         }
 
         // vector write into LDS

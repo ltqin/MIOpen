@@ -129,8 +129,8 @@ extern "C" __global__
     using GemmBBlockCopySrcAccessOrder = Sequence<0, 1, 3, 2>; // [GemmG, GemmK, GemmKPack, GemmN]
     using GemmBBlockCopyDstAccessOrder = Sequence<0, 1, 2, 3>; // [GemmG, GemmK, GemmN, GemmKPack]
 
-    constexpr index_t GemmBBlockCopySrcDataPerRead_GemmN =
-        CK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_N;
+    constexpr index_t GemmBBlockCopySrcDataPerRead_GemmKPack =
+        CK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_KPACK;
 
     constexpr index_t GemmBBlockCopyDstDataPerWrite_GemmKPack =
         CK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_KPACK;
@@ -171,7 +171,7 @@ extern "C" __global__
             GemmBBlockCopyThreadClusterArrangeOrder,
             GemmBBlockCopySrcAccessOrder,
             GemmBBlockCopyDstAccessOrder,
-            GemmBBlockCopySrcDataPerRead_GemmN,
+            GemmBBlockCopySrcDataPerRead_GemmKPack,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             wkgrp_schd_order>{};
     gridwise_conv.Run(p_in_global, p_wei_global, p_out_global);

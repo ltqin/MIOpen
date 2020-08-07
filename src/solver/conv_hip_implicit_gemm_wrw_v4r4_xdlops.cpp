@@ -392,7 +392,6 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
     int ClusterLengths_GemmKPack = -1;
 
     int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
-    //int SrcDataPerRead_GemmN     =  amd_buffer_load_max_length<half_float::half>();
     int DstDataPerWrite_GemmKPack =  amd_lds_write_max_length<half_float::half>();
 
     try
@@ -830,7 +829,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
     int GemmBBlockCopyClusterLengths_GemmK      = -1;
     int GemmBBlockCopyClusterLengths_GemmN      = -1;
     int GemmBBlockCopyClusterLengths_GemmKPack  = -1;
-    int GemmBBlockCopySrcDataPerRead_GemmN      = -1;
+    int GemmBBlockCopySrcDataPerRead_GemmKPack  = -1;
     int GemmBBlockCopyDstDataPerWrite_GemmKPack = -1;
 
     std::tie(GemmABlockCopyClusterLengths_GemmK,
@@ -843,7 +842,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
     std::tie(GemmBBlockCopyClusterLengths_GemmK,
              GemmBBlockCopyClusterLengths_GemmN,
              GemmBBlockCopyClusterLengths_GemmKPack,
-             GemmBBlockCopySrcDataPerRead_GemmN,
+             GemmBBlockCopySrcDataPerRead_GemmKPack,
              GemmBBlockCopyDstDataPerWrite_GemmKPack,
              std::ignore) = config.CalculateGemmBBlockCopyPerformanceParameters(ctx);
 
@@ -884,7 +883,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
         std::string(" -DCK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_K=") + std::to_string(GemmBBlockCopyClusterLengths_GemmK) +
         std::string(" -DCK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_N=") + std::to_string(GemmBBlockCopyClusterLengths_GemmN) +
         std::string(" -DCK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_CLUSTER_LENGTHS_GEMM_KPACK=") + std::to_string(GemmBBlockCopyClusterLengths_GemmKPack) +
-        std::string(" -DCK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_N=") + std::to_string(GemmBBlockCopySrcDataPerRead_GemmN) +
+        std::string(" -DCK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_SRC_DATA_PER_READ_GEMM_KPACK=") + std::to_string(GemmBBlockCopySrcDataPerRead_GemmKPack) +
         std::string(" -DCK_PARAM_DEPENDENT_GEMM_B_BLOCK_COPY_DST_DATA_PER_WRITE_GEMM_KPACK=") + std::to_string(GemmBBlockCopyDstDataPerWrite_GemmKPack) +
         std::string(" -DCK_USE_AMD_XDLOPS=") + std::to_string(IsXdlopsSupport(ctx) ? 1 : 0) +
         std::string(" -DCK_USE_AMD_XDLOPS_INLINE_ASM=") + std::to_string(miopen::IsEnabled(MIOPEN_DEBUG_IMPLICIT_GEMM_XDLOPS_INLINE_ASM{}) ? 1 : 0) +

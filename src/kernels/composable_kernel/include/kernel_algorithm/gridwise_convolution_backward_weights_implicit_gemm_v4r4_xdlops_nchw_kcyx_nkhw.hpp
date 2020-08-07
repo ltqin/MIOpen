@@ -40,7 +40,7 @@ template <index_t GridSize,
           class GemmBBlockCopyThreadClusterArrangeOrder,
           class GemmBBlockCopySrcAccessOrder,
           class GemmBBlockCopyDstAccessOrder,
-          index_t GemmBBlockCopySrcDataPerRead_GemmN,
+          index_t GemmBBlockCopySrcDataPerRead_GemmKPack,
           index_t GemmBBlockCopyDstDataPerWrite_GemmKPack,
           WorkgroupScheduleOrder WorkgroupSchdOrder>
 struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
@@ -201,8 +201,8 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             GemmBBlockCopyThreadClusterArrangeOrder,
             GemmBBlockCopySrcAccessOrder,
             GemmBBlockCopyDstAccessOrder,
-            3, // Src vetor read diemsnion of B matrix is GemmN
-            GemmBBlockCopySrcDataPerRead_GemmN,
+            3, // Src vetor read diemsnion of B matrix is GemmKPack
+            GemmBBlockCopySrcDataPerRead_GemmKPack,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             InMemoryDataOperation::Set,
             WorkgroupSchdOrder>{};

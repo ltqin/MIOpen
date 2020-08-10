@@ -164,9 +164,9 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 64>(tmp.GemmMPerWave))
                         break;
-                    if(!PreviousTwoPower<4, 128>(tmp.GemmNPerBlock))
+                    if(!PreviousTwoPower<4, 64>(tmp.GemmNPerBlock))
                         break;
-                    if(!PreviousTwoPower<4, 128>(tmp.GemmMPerBlock))
+                    if(!PreviousTwoPower<4, 64>(tmp.GemmMPerBlock))
                         break;
                     
                     all_visited = true;
@@ -422,7 +422,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         const auto in_right_pad_h = ConvolutionContextInterpreter::GetAdjustedInputRightPadH(ctx);
         const auto in_right_pad_w = ConvolutionContextInterpreter::GetAdjustedInputRightPadW(ctx);
 
-        // GemmN is src vector read dimension, bounded by input tensor global memory layout
+        // GemmKPack is src vector read dimension, bounded by input tensor global memory layout
         // TODO this logic need to be more aggresive
         if(y == 1 && x == 1 && conv_stride_h == 1 && conv_stride_w == 1 && in_left_pad_h == 0 &&
            in_left_pad_w == 0 && in_right_pad_h == 0 && in_right_pad_w == 0)

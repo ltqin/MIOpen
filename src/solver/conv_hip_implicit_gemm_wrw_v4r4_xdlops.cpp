@@ -164,9 +164,9 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 64>(tmp.GemmMPerWave))
                         break;
-                    if(!PreviousTwoPower<4, 64>(tmp.GemmNPerBlock))
+                    if(!PreviousTwoPower<4, 128>(tmp.GemmNPerBlock))
                         break;
-                    if(!PreviousTwoPower<4, 64>(tmp.GemmMPerBlock))
+                    if(!PreviousTwoPower<4, 128>(tmp.GemmMPerBlock))
                         break;
                     
                     all_visited = true;
@@ -391,8 +391,10 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
     int ClusterLengths_GemmN     = -1;
     int ClusterLengths_GemmKPack = -1;
 
-    int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
-    int DstDataPerWrite_GemmKPack =  amd_lds_write_max_length<half_float::half>();
+    int SrcDataPerRead_GemmKPack = ctx.IsFp32() ? amd_buffer_load_max_length<float>()
+                                                : amd_buffer_load_max_length<half_float::half>();;
+    int DstDataPerWrite_GemmKPack =  ctx.IsFp32() ? amd_lds_write_max_length<float>()
+                                                 : amd_lds_write_max_length<half_float::half>();
 
     try
     {

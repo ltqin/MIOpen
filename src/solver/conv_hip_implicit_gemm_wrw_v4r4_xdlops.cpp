@@ -164,9 +164,9 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 64>(tmp.GemmMPerWave))
                         break;
-                    if(!PreviousTwoPower<4, 256>(tmp.GemmNPerBlock))
+                    if(!NextTwoPower<4, 256>(tmp.GemmNPerBlock))
                         break;
-                    if(!PreviousTwoPower<4, 256>(tmp.GemmMPerBlock))
+                    if(!NextTwoPower<4, 256>(tmp.GemmMPerBlock))
                         break;
                     
                     all_visited = true;

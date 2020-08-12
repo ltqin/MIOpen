@@ -154,10 +154,6 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
             {
                 do
                 {
-                    //tmp.GemmNPerBlock = 64;
-                    //tmp.GemmMPerBlock = 64;
-                    //tmp.GemmMPerWave = 32;
-                    //tmp.GemmNPerWave = 32;
                     // list in reverse order of importance,
                     // and favor large GEMM
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
@@ -639,11 +635,8 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         //    if(ratio < 8)
         //        return false;
         //}
-        if(grid_size < 120)
-             return false;
-        if(grid_size > 800)
-             return false;
-       /* if(grid_size_max_blockwise_gemm > 600)
+        
+        if(grid_size_max_blockwise_gemm > 600)
         {
             if(ratio > 1.41)
                 return false;
@@ -667,7 +660,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         {
             if(ratio > 6.21)
                 return false;
-        }*/
+        }
     }
 
     // don't need too many waves per block

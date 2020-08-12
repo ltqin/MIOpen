@@ -148,7 +148,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
         else if(ctx.IsFp16())
         {
             //tmp = {256, 256, 8, 128, 128, 8, false, true};
-            tmp = {64, 64, 8, 64, 64, 8, false, true};
+            tmp = {32, 32, 8, 64, 64, 8, false, true};
             bool all_visited = false;
             do
             {
@@ -164,9 +164,9 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 64>(tmp.GemmMPerWave))
                         break;
-                    if(!PreviousTwoPower<4, 64>(tmp.GemmNPerBlock))
+                    if(!PreviousTwoPower<4, 128>(tmp.GemmNPerBlock))
                         break;
-                    if(!PreviousTwoPower<4, 64>(tmp.GemmMPerBlock))
+                    if(!PreviousTwoPower<4, 128>(tmp.GemmMPerBlock))
                         break;
                     
                     all_visited = true;
@@ -185,6 +185,9 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
             {
                 do
                 {
+                    tmp.GemmNPerBlock = 64;
+                    tmp.GemmMPerBlock = 64;
+
                     // list in reverse order of importance,
                     // and favor large GEMM
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
@@ -200,7 +203,6 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                     if(!PreviousTwoPower<4, 256>(tmp.GemmMPerBlock))
                         break;
                     
-
                     all_visited = true;
                 } while(false);
 
@@ -391,8 +393,10 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
     int ClusterLengths_GemmN     = -1;
     int ClusterLengths_GemmKPack = -1;
 
-    int SrcDataPerRead_GemmKPack = amd_buffer_load_max_length<half_float::half>();
-    int DstDataPerWrite_GemmKPack =  amd_lds_write_max_length<half_float::half>();
+    int SrcDataPerRead_GemmKPack = ctx.IsFp32() ? amd_buffer_load_max_length<float>()
+                                                : amd_buffer_load_max_length<half_float::half>();;
+    int DstDataPerWrite_GemmKPack =  ctx.IsFp32() ? amd_lds_write_max_length<float>()
+                                                 : amd_lds_write_max_length<half_float::half>();
 
     try
     {

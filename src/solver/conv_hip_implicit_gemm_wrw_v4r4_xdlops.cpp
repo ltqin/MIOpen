@@ -631,6 +631,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
 
         const float ratio = float(grid_size) / grid_size_max_blockwise_gemm;
 
+        std::cout << "gemm_n: " << gemm_n << " gemm_m: " << gemm_m << " gridsize: " << grid_size << std::endl;
         //if(grid_size_max_blockwise_gemm < 120){
         //    if(ratio < 8)
         //        return false;

@@ -624,7 +624,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         // this the the biggest blockwise-GEMM you can do
         int max_blockwise_gemm_size =
 #if WORKAROUND_SWDEV_240356
-            gcd(64, gemm_m) * gcd(64, gemm_n);
+            gcd(128, gemm_m) * gcd(64, gemm_n);
 #else
             std::max(gcd(256, gemm_m) * gcd(128, gemm_n), gcd(128, gemm_m) * gcd(256, gemm_n));
 #endif

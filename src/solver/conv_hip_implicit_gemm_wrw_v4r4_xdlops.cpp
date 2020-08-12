@@ -185,9 +185,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
             {
                 do
                 {
-                    tmp.GemmNPerBlock = 64;
-                    tmp.GemmMPerBlock = 64;
-
+                    
                     // list in reverse order of importance,
                     // and favor large GEMM
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
@@ -633,6 +631,12 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
 
         const float ratio = float(grid_size) / grid_size_max_blockwise_gemm;
 
+        std::cout << "gemm_n: " << gemm_n << " gemm_m: " << gemm_m << " gridsize: " << grid_size << std::endl;
+        //if(grid_size_max_blockwise_gemm < 120){
+        //    if(ratio < 8)
+        //        return false;
+        //}
+        
         if(grid_size_max_blockwise_gemm > 600)
         {
             if(ratio > 1.41)

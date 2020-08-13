@@ -223,6 +223,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
     // second round: really valid
     if(!tmp.IsReallyValid(ctx))
     {
+        std::cout << "***************find again**************" << std::endl;
         get_euristic_config(
             [](auto config, auto conv_context) { return config.IsReallyValid(conv_context); });
     }
@@ -638,11 +639,11 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         //    if(ratio < 8)
         //        return false;
         //}
-        if(grid_size > 500){
-            if(ratio > 8)
-                return false;
-        }
-        /*if(grid_size_max_blockwise_gemm > 600)
+        //if(grid_size > 500){
+        //    if(ratio > 8)
+        //        return false;
+        //}
+        if(grid_size_max_blockwise_gemm > 600)
         {
             if(ratio > 1.41)
                 return false;
@@ -666,7 +667,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         {
             if(ratio > 6.21)
                 return false;
-        }*/
+        }
     }
 
     // don't need too many waves per block

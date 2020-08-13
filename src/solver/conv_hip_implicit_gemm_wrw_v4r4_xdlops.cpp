@@ -221,12 +221,12 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
     });
 
     // second round: really valid
-   /* if(!tmp.IsReallyValid(ctx))
+    if(!tmp.IsReallyValid(ctx))
     {
         get_euristic_config(
-            [](auto config, auto conv_context) { return config.IsReallyValid(conv_context); });
+            [](auto config, auto conv_context) { return config.IsReallyValid(conv_context) && config.IsFastToBeUsedForTuning(conv_context); });
     }
-*/
+
     // final check
     if(!tmp.IsReallyValid(ctx))
     {

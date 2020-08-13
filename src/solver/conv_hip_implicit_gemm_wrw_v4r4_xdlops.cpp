@@ -638,7 +638,10 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         //    if(ratio < 8)
         //        return false;
         //}
-        
+        if(grid_size > 800){
+            if(ratio > 1)
+                return false;
+        }
         if(grid_size_max_blockwise_gemm > 600)
         {
             if(ratio > 1.41)

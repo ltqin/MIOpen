@@ -638,7 +638,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         //    if(ratio < 8)
         //        return false;
         //}
-        if(grid_size < 800){
+        if(grid_size < 500){
             if(ratio < 16)
                 return false;
         }

@@ -632,7 +632,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         const float ratio = float(grid_size) / grid_size_max_blockwise_gemm;
 
         std::cout << "gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gridsize: " << grid_size << " ratio: " << ratio <<  std::endl;
-        std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << "GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave << std::endl;
+        std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << " GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave << std::endl;
 
         //if(grid_size_max_blockwise_gemm < 120){
         //    if(ratio < 8)

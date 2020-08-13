@@ -147,8 +147,8 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
         }
         else if(ctx.IsFp16())
         {
-            tmp = {256, 256, 8, 128, 128, 8, false, true};
-            //tmp = {32, 32, 8, 64, 64, 8, false, true};
+            //tmp = {256, 256, 8, 128, 128, 8, false, true};
+            tmp = {32, 32, 8, 64, 64, 8, false, true};
             bool all_visited = false;
             do
             {

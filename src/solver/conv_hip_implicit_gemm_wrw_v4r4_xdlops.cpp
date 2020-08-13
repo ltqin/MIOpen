@@ -147,8 +147,8 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
         }
         else if(ctx.IsFp16())
         {
-            //tmp = {256, 256, 8, 128, 128, 8, false, true};
-            tmp = {32, 32, 8, 64, 64, 8, false, true};
+            tmp = {256, 256, 8, 128, 128, 8, false, true};
+            //tmp = {32, 32, 8, 64, 64, 8, false, true};
             bool all_visited = false;
             do
             {
@@ -668,26 +668,22 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
             if(ratio > 6.21)
                 return false;
         }
-    /*    else if(grid_size_max_blockwise_gemm > 60){
+        else if(grid_size_max_blockwise_gemm > 60){
             if(ratio < 2)
                 return false;
         }
-        if(grid_size_max_blockwise_gemm > 30){
+        else if(grid_size_max_blockwise_gemm > 30){
             if(ratio < 4)
                 return false;
         }
-        if(grid_size_max_blockwise_gemm > 15){
+        else if(grid_size_max_blockwise_gemm > 15){
             if(ratio < 8)
                 return false;
         }
-        if(grid_size_max_blockwise_gemm > 7){
-            if(ratio < 16)
-                return false;
-        }
         else{
-            if(ratio < 32)
-                return false;
-        }*/
+            if(ratio < 16)
+            return false;
+        }
     }
 
     // don't need too many waves per block

@@ -631,7 +631,9 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
 
         const float ratio = float(grid_size) / grid_size_max_blockwise_gemm;
 
-        std::cout << "gemm_n: " << gemm_n << " gemm_m: " << gemm_m << " gridsize: " << grid_size << std::endl;
+        std::cout << "gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gridsize: " << grid_size << "ratio: " << ratio << std::endl;
+        std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << std::endl;
+        std::cout << "GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave  << std::endl;
         //if(grid_size_max_blockwise_gemm < 120){
         //    if(ratio < 8)
         //        return false;
@@ -854,6 +856,8 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
              GemmBBlockCopyDstDataPerWrite_GemmKPack,
              std::ignore) = config.CalculateGemmBBlockCopyPerformanceParameters(ctx);
 
+    std::cout << "GemmABlockCopySrcDataPerRead_GemmKPack: " << GemmABlockCopySrcDataPerRead_GemmKPack << " GemmABlockCopyDstDataPerWrite_GemmKPack: " << GemmABlockCopyDstDataPerWrite_GemmKPack << std::endl;
+    std::cout << "GemmBBlockCopySrcDataPerRead_GemmKPack: " << GemmBBlockCopySrcDataPerRead_GemmKPack << " GemmBBlockCopyDstDataPerWrite_GemmKPack: " << GemmBBlockCopyDstDataPerWrite_GemmKPack << std::endl;
     // clang-format off
     construction_parameters.comp_options =
         std::string(" -std=c++14 ") +
@@ -905,43 +909,6 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
    // result.invoker_factory = conv::MakeImplGemmDataInvokerFactory(ctx);
    // result.construction_params.push_back(construction_parameters);
 
-  /*  result.construction_params.push_back(construction_parameters);
-    const auto& dwDesc = ctx.conv_problem.GetWeights();
-    const auto lowp_quant  = ctx.conv_problem.GetConv().lowp_quant;
-    result.invoker_factory = [=](const std::vector<Kernel>& kernels) {
-        return [=](const Handle& handle, const boost::any& primitive_params) {
-            const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
-            const auto& tensors      = invoke_params.tensors;
-            float zero               = 0.f;
-            TensorDescriptor workSpaceDesc(
-                miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
-            SetTensor(handle, workSpaceDesc, invoke_params.workSpace, &zero);
-            float elapsed = std::numeric_limits<float>::max();
-            if(handle.IsProfilingEnabled())
-                elapsed = handle.GetKernelTime();
-
-            handle.Run(kernels[0])(tensors.x, tensors.dy, invoke_params.workSpace);
-            if(handle.IsProfilingEnabled())
-                elapsed += handle.GetKernelTime();
-
-            CastTensor(handle,
-                       &lowp_quant,
-                       workSpaceDesc,
-                       invoke_params.workSpace,
-                       tensors.dwDesc,
-                       tensors.dw,
-                       0,
-                       0);
-
-            if(handle.IsProfilingEnabled())
-            {
-                elapsed += handle.GetKernelTime();
-                handle.ResetKernelTime();
-                handle.AccumKernelTime(elapsed);
-            }
-        };
-    };
-    */
     result.construction_params.push_back(construction_parameters);
 
     result.invoker_factory = [](const std::vector<Kernel>& kernels) {

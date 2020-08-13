@@ -669,7 +669,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
                 return false;
         }
         else{
-            if(ratio < 2)
+            if(ratio < 4)
                 return false;
         }
     }

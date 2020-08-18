@@ -665,7 +665,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
             if(ratio > 6.21)
                 return false;
         }
-        else if(grid_size_max_blockwise_gemm > 60){
+       /* else if(grid_size_max_blockwise_gemm > 60){
             if(ratio < 4)
                 return false;
         }
@@ -680,7 +680,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         else{
             if(ratio < 16)
             return false;
-        }
+        }*/
     }
 
     // don't need too many waves per block

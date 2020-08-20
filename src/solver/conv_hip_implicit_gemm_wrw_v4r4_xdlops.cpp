@@ -928,11 +928,33 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
 
     result.construction_params.push_back(construction_parameters);
 
-    result.invoker_factory = [](const std::vector<Kernel>& kernels) {
+    result.invoker_factory = [&ctx](const std::vector<Kernel>& kernels) {
         return [=](const Handle& handle, const boost::any& primitive_params) {
+            const auto& conv         = ctx.conv_problem.GetConv();
+            const auto& lowp_quant   = conv.lowp_quant;
             const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
             const auto& tensors      = invoke_params.tensors;
-            handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);
+            const auto& workSpace    = invoke_params.workSpace;
+            auto kernel = handle.Run(kernels[0]);
+            float elapsed = 0;
+            float zero = 0.f;
+            TensorDescriptor workspaceDesc(
+                miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
+            SetTensor(handle, workspaceDesc, workSpace, &zero);
+            if(handle.IsProfilingEnabled())
+                elapsed += handle.GetKernelTime();
+
+            kernel(tensors.x, tensors.dy, workSpace);
+            if(handle.IsProfilingEnabled())
+                elapsed += handle.GetKernelTime();
+
+            CastTensor(
+                handle, &lowp_quant, workspaceDesc, workSpace, tensors.dwDesc, tensors.dw, 0, 0);
+            if(handle.IsProfilingEnabled())
+                elapsed += handle.GetKernelTime();
+           
+            
+            //handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);
         };
     };
     return result;

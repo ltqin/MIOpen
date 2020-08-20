@@ -833,6 +833,8 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
     construction_parameters.kernel_name =
         "gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw_fp16";
 
+    result.workspce_sz = GetWorkspaceSize(ctx);
+    
     int grid_size  = 0;
     int block_size = 0;
 

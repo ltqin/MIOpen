@@ -1866,6 +1866,7 @@ struct ConvHipImplicitGemmWrwV4R4Xdlops : SolverBase<ConvolutionContext>
     static std::tuple<int, int, int, int> CalculateGemmSize(const ConvolutionContext& ctx);
     PerformanceImplicitGemmWrwV4R4Xdlops
     GetPerformanceConfig(const ConvolutionContext& ctx) const;
+    size_t GetWorkspaceSize(const ConvolutionContext& ctx) const;
     bool IsValidPerformanceConfig(const ConvolutionContext& ctx,
                                   const PerformanceImplicitGemmWrwV4R4Xdlops& c) const;
     bool IsApplicable(const ConvolutionContext& ctx) const;

@@ -953,7 +953,21 @@ int ConvHipImplicitGemmWrwV4R4Xdlops::RunAndMeasureSolution(const miopen::Handle
     return RunAndMeasureSolutionBase(
         profile_h, bot_buf, top_buf, wei_buf, ctx, solution, elapsed_time);
 }
+std::size_t
+ConvHipImplicitGemmWrwV4R4Xdlops::GetWorkspaceSize(const ConvolutionContext& ctx) const
+{
+    if(ctx.IsFp32())
+        return 0;
+    else
+    {
+        const auto n  = ConvolutionContextInterpreter::GetBatchN(ctx);
+        const auto k  = ConvolutionContextInterpreter::GetOutputChannelK(ctx);
+        const auto ho = ConvolutionContextInterpreter::GetOutputHeightHo(ctx);
+        const auto wo = ConvolutionContextInterpreter::GetOutputWidthWo(ctx);
 
+        return n * k * ho * wo * miopen::GetTypeSize(miopenFloat);
+    }
+}
 bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ctx) const
 {
     if(!IsXdlopsSupport(ctx))

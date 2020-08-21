@@ -632,8 +632,8 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
 
         const float ratio = float(grid_size) / grid_size_max_blockwise_gemm;
 
-        std::cout << "gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gridsize: " << grid_size << " ratio: " << ratio << " grid_size_max_blockwise_gemm: " << grid_size_max_blockwise_gemm <<  std::endl;
-        std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << " GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave << std::endl;
+        //std::cout << "gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gridsize: " << grid_size << " ratio: " << ratio << " grid_size_max_blockwise_gemm: " << grid_size_max_blockwise_gemm <<  std::endl;
+        //std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << " GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave << std::endl;
 
         if(grid_size_max_blockwise_gemm > 1024)
         {
@@ -735,7 +735,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
 
         const int a_data_per_thread_copy = (GemmKPerBlock * GemmMPerBlock * GemmKPack) / block_size;
         const int b_data_per_thread_copy = (GemmKPerBlock * GemmNPerBlock * GemmKPack) / block_size;
-        std::cout << "block_size: " << block_size << std::endl;
+        // << "block_size: " << block_size << std::endl;
         if(ctx.IsFp32())
         {
             if(a_data_per_thread_copy > 16 || b_data_per_thread_copy > 16)
@@ -833,6 +833,8 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
     construction_parameters.kernel_name =
         "gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw_fp16";
 
+    result.workspce_sz = GetWorkspaceSize(ctx);
+
     int grid_size  = 0;
     int block_size = 0;
 
@@ -873,8 +875,8 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
              GemmBBlockCopyDstDataPerWrite_GemmKPack,
              std::ignore) = config.CalculateGemmBBlockCopyPerformanceParameters(ctx);
 
-    std::cout << "GemmABlockCopySrcDataPerRead_GemmKPack: " << GemmABlockCopySrcDataPerRead_GemmKPack << " GemmABlockCopyDstDataPerWrite_GemmKPack: " << GemmABlockCopyDstDataPerWrite_GemmKPack << std::endl;
-    std::cout << "GemmBBlockCopySrcDataPerRead_GemmKPack: " << GemmBBlockCopySrcDataPerRead_GemmKPack << " GemmBBlockCopyDstDataPerWrite_GemmKPack: " << GemmBBlockCopyDstDataPerWrite_GemmKPack << std::endl;
+    //std::cout << "GemmABlockCopySrcDataPerRead_GemmKPack: " << GemmABlockCopySrcDataPerRead_GemmKPack << " GemmABlockCopyDstDataPerWrite_GemmKPack: " << GemmABlockCopyDstDataPerWrite_GemmKPack << std::endl;
+    //std::cout << "GemmBBlockCopySrcDataPerRead_GemmKPack: " << GemmBBlockCopySrcDataPerRead_GemmKPack << " GemmBBlockCopyDstDataPerWrite_GemmKPack: " << GemmBBlockCopyDstDataPerWrite_GemmKPack << std::endl;
     // clang-format off
     construction_parameters.comp_options =
         std::string(" -std=c++14 ") +
@@ -982,12 +984,12 @@ ConvHipImplicitGemmWrwV4R4Xdlops::GetWorkspaceSize(const ConvolutionContext& ctx
         return 0;
     else
     {
-        const auto n  = ConvolutionContextInterpreter::GetBatchN(ctx);
         const auto k  = ConvolutionContextInterpreter::GetOutputChannelK(ctx);
-        const auto ho = ConvolutionContextInterpreter::GetOutputHeightHo(ctx);
-        const auto wo = ConvolutionContextInterpreter::GetOutputWidthWo(ctx);
+        const auto c  = ConvolutionContextInterpreter::GetInputChannelC(ctx);
+        const auto y  = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
+        const auto x  = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
 
-        return n * k * ho * wo * miopen::GetTypeSize(miopenFloat);
+        return k * c * y * x * miopen::GetTypeSize(miopenFloat);
     }
 }
 bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ctx) const

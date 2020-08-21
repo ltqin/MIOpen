@@ -928,10 +928,10 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
 
     result.construction_params.push_back(construction_parameters);
 
-    result.invoker_factory = [&ctx](const std::vector<Kernel>& kernels) {
+    const auto& conv         = ctx.conv_problem.GetConv();
+    const auto& lowp_quant   = conv.lowp_quant;
+    result.invoker_factory = [=](const std::vector<Kernel>& kernels) {
         return [=](const Handle& handle, const boost::any& primitive_params) {
-            const auto& conv         = ctx.conv_problem.GetConv();
-            const auto& lowp_quant   = conv.lowp_quant;
             const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
             const auto& tensors      = invoke_params.tensors;
             const auto& workSpace    = invoke_params.workSpace;

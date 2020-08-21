@@ -942,16 +942,16 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
             float zero = 0.f;
             TensorDescriptor workspaceDesc(
                 miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
-            SetTensor(handle, workspaceDesc, workSpace, &zero);
+            SetTensor(handle, workspaceDesc, invoke_params.workSpace, &zero);
             if(handle.IsProfilingEnabled())
                 elapsed += handle.GetKernelTime();
 
-            kernel(tensors.x, tensors.dy, workSpace);
+            kernel(tensors.x, tensors.dy, invoke_params.workSpace);
             if(handle.IsProfilingEnabled())
                 elapsed += handle.GetKernelTime();
 
             CastTensor(
-                handle, &lowp_quant, workspaceDesc, workSpace, tensors.dwDesc, tensors.dw, 0, 0);
+                handle, &lowp_quant, workspaceDesc, invoke_params.workSpace, tensors.dwDesc, tensors.dw, 0, 0);
             if(handle.IsProfilingEnabled())
                 elapsed += handle.GetKernelTime();
            

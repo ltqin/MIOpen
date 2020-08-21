@@ -834,7 +834,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
         "gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw_fp16";
 
     result.workspce_sz = GetWorkspaceSize(ctx);
-    
+
     int grid_size  = 0;
     int block_size = 0;
 
@@ -984,12 +984,12 @@ ConvHipImplicitGemmWrwV4R4Xdlops::GetWorkspaceSize(const ConvolutionContext& ctx
         return 0;
     else
     {
-        const auto n  = ConvolutionContextInterpreter::GetBatchN(ctx);
         const auto k  = ConvolutionContextInterpreter::GetOutputChannelK(ctx);
-        const auto ho = ConvolutionContextInterpreter::GetOutputHeightHo(ctx);
-        const auto wo = ConvolutionContextInterpreter::GetOutputWidthWo(ctx);
+        const auto c  = ConvolutionContextInterpreter::GetInputChannelC(ctx);
+        const auto y  = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
+        const auto x  = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
 
-        return n * k * ho * wo * miopen::GetTypeSize(miopenFloat);
+        return k * c * y * x * miopen::GetTypeSize(miopenFloat);
     }
 }
 bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ctx) const

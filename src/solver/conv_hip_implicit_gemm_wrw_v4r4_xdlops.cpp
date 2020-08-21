@@ -24,13 +24,13 @@
  *
  *******************************************************************************/
 
-#include <miopen/conv/invokers/impl_gemm.hpp>
 #include <miopen/solver.hpp>
+#include <miopen/conv/invokers/impl_gemm.hpp>
+#include <miopen/conv/wrw_invoke_params.hpp>
 #include <miopen/handle.hpp>
 #include <miopen/generic_search.hpp>
 #include <miopen/hip_build_utils.hpp>
 #include "implicitgemm_util.hpp"
-#include <miopen/conv/wrw_invoke_params.hpp>
 
 #include <miopen/stringutils.hpp>
 #include <miopen/tensor_ops.hpp>
@@ -1050,7 +1050,11 @@ PerformanceImplicitGemmWrwV4R4Xdlops
 ConvHipImplicitGemmWrwV4R4Xdlops::Search(const ConvolutionContext& ctx) const
 
 {
-    return GenericSearchFwd(*this, ctx);
+    // fp16/bfp16 uses fp32 workspace to leverage fp32 atomic add
+    if(ctx.IsFp16() || ctx.IsBfp16())
+        return GenericSearchWrW(*this, ctx, SearchTweak::WorkspaceInsteadOfWeightsBuffer);
+    else
+        return GenericSearchWrW(*this, ctx);
 }
 
 } // namespace solver

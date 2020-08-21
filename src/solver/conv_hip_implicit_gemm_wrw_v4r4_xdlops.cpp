@@ -964,8 +964,8 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
 
 int ConvHipImplicitGemmWrwV4R4Xdlops::RunAndMeasureSolution(const miopen::Handle& profile_h,
                                                                 ConstData_t bot_buf,
-                                                                Data_t top_buf,
-                                                                ConstData_t wei_buf,
+                                                                ConstData_t  top_buf,
+                                                                Data_t wei_buf,
                                                                 ConstData_t bias_buf,
                                                                 const ConvolutionContext& ctx,
                                                                 const ConvSolution& solution,
@@ -977,21 +977,7 @@ int ConvHipImplicitGemmWrwV4R4Xdlops::RunAndMeasureSolution(const miopen::Handle
     return RunAndMeasureSolutionBase(
         profile_h, bot_buf, top_buf, wei_buf, ctx, solution, elapsed_time);
 }
-std::size_t
-ConvHipImplicitGemmWrwV4R4Xdlops::GetWorkspaceSize(const ConvolutionContext& ctx) const
-{
-    if(ctx.IsFp32())
-        return 0;
-    else
-    {
-        const auto k  = ConvolutionContextInterpreter::GetOutputChannelK(ctx);
-        const auto c  = ConvolutionContextInterpreter::GetInputChannelC(ctx);
-        const auto y  = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
-        const auto x  = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
 
-        return k * c * y * x * miopen::GetTypeSize(miopenFloat);
-    }
-}
 bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ctx) const
 {
     if(!IsXdlopsSupport(ctx))
@@ -1048,7 +1034,6 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
 
 PerformanceImplicitGemmWrwV4R4Xdlops
 ConvHipImplicitGemmWrwV4R4Xdlops::Search(const ConvolutionContext& ctx) const
-
 {
     // fp16/bfp16 uses fp32 workspace to leverage fp32 atomic add
     if(ctx.IsFp16() || ctx.IsBfp16())
@@ -1057,5 +1042,20 @@ ConvHipImplicitGemmWrwV4R4Xdlops::Search(const ConvolutionContext& ctx) const
         return GenericSearchWrW(*this, ctx);
 }
 
+std::size_t
+ConvHipImplicitGemmWrwV4R4Xdlops::GetWorkspaceSize(const ConvolutionContext& ctx) const
+{
+    if(ctx.IsFp32())
+        return 0;
+    else
+    {
+        const auto k  = ConvolutionContextInterpreter::GetOutputChannelK(ctx);
+        const auto c  = ConvolutionContextInterpreter::GetInputChannelC(ctx);
+        const auto y  = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
+        const auto x  = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
+
+        return k * c * y * x * miopen::GetTypeSize(miopenFloat);
+    }
+}
 } // namespace solver
 } // namespace miopen

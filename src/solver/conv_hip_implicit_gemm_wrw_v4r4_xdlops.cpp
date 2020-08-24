@@ -957,6 +957,8 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
             if(handle.IsProfilingEnabled()){
                  std::cout << "fp32 cast fp16  time: " << handle.GetKernelTime() << std::endl;
                 elapsed += handle.GetKernelTime();
+                handle.ResetKernelTime();
+                handle.AccumKernelTime(elapsed);
             }
            
             

@@ -936,7 +936,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
             const auto& tensors      = invoke_params.tensors;
             auto kernel = handle.Run(kernels[0]);
             float elapsed = 0;
-        #if 0
+        #if 1
             const auto& workSpace    = invoke_params.workSpace;
             float zero = 0.f;
             TensorDescriptor workspaceDesc(

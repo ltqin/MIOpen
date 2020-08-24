@@ -47,7 +47,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 {
     __device__ void Run(const ABFloat* const __restrict__ p_in_global,
                         const ABFloat* const __restrict__ p_wei_global,
-                        ABFloat* const __restrict__ p_out_global) const
+                        CFloat* const __restrict__ p_out_global) const
     {
         constexpr auto in_n_c_hi_wi_global_desc        = InGlobalDesc{};
         constexpr auto wei_k_cpergroup_y_x_global_desc = WeiGlobalDesc{};
@@ -179,7 +179,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             BlockSize,
             ABFloat,
             AccFloat,
-            ABFloat,
+            CFloat,
             decltype(out_gemmg_gemmk_gemmm_gemmkpack_global_desc),
             decltype(in_gemmg_gemmk_gemmn_gemmkpack_global_desc),
             decltype(wei_gemmg_gemmm_gemmn_global_desc),

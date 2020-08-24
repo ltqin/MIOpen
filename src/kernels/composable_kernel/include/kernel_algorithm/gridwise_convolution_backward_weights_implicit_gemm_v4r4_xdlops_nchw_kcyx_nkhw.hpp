@@ -101,14 +101,15 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             Sequence<G, N, KPerGroup, Ho, Wo>{},
             Sequence<KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
 
-        constexpr size_t N0 = 1;
+        constexpr index_t N0 = 1;
+        constexpr index_t N1 = N / N0;
         // output tensor  A matrix
         constexpr auto I3 = Number<3>{};
         constexpr auto I4 = Number<4>{};
         constexpr auto out_g_n0_n1_kpergroup_hw_global_desc = transform_tensor_descriptor(
             unfold_tensor_descriptor(out_g_n_kpergroup_ho_wo_global_desc,I3,I4),
             make_tuple(PassThrough<G>{}, 
-                       UnMerge<N0,N/N0>{}, 
+                       UnMerge<N0, N1>{}, 
                        PassThrough<KPerGroup>{},
                        PassThrough<Ho*Wo>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3>{}),
@@ -116,7 +117,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr auto out_gemmg_gemmktotal_gemmm_global_desc = transform_tensor_descriptor(
             out_g_n0_n1_kpergroup_hw_global_desc,
-            make_tuple(Merge<G,N0>{}, PassThrough<KPerGroup>{}, Merge<Sequence<N/N0, Ho*Wo>>{}),
+            make_tuple(Merge<G, N0>{}, PassThrough<KPerGroup>{}, Merge<Sequence<N1, Ho*Wo>>{}),
             make_tuple(Sequence<0,1>{}, Sequence<3>{}, Sequence<2, 4>{}),
             make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
 

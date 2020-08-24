@@ -934,10 +934,9 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
         return [=](const Handle& handle, const boost::any& primitive_params) {
             const auto invoke_params = boost::any_cast<conv::WrWInvokeParams>(primitive_params);
             const auto& tensors      = invoke_params.tensors;
+            const auto& workSpace    = invoke_params.workSpace;
             auto kernel = handle.Run(kernels[0]);
             float elapsed = 0;
-        #if 0
-            const auto& workSpace    = invoke_params.workSpace;
             float zero = 0.f;
             TensorDescriptor workspaceDesc(
                 miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
@@ -946,22 +945,15 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
                 std::cout << "set zero time: " << handle.GetKernelTime() << std::endl;
                 elapsed += handle.GetKernelTime();
             }
-
             kernel(tensors.x, tensors.dy, workSpace);
             if(handle.IsProfilingEnabled()){
                  std::cout << "work time: " << handle.GetKernelTime() << std::endl;
                 elapsed += handle.GetKernelTime();
             }
-
             CastTensor(
                 handle, &lowp_quant, workspaceDesc, workSpace, tensors.dwDesc, tensors.dw, 0, 0);
-            std::cout << "fp32 cast fp16  time: " << handle.GetKernelTime() << std::endl;
-            
-           
-        #elif 1
-            handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);
-        #endif
             if(handle.IsProfilingEnabled()){  
+                std::cout << "fp32 cast fp16  time: " << handle.GetKernelTime() << std::endl;
                 elapsed += handle.GetKernelTime();
                 handle.ResetKernelTime();
                 handle.AccumKernelTime(elapsed);

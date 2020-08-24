@@ -49,9 +49,6 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                         const ABFloat* const __restrict__ p_wei_global,
                         CFloat* const __restrict__ p_out_global) const
     {
-        constexpr auto I3 = Number<3>{};
-        constexpr auto I4 = Number<4>{};
-
         constexpr auto in_n_c_hi_wi_global_desc        = InGlobalDesc{};
         constexpr auto wei_k_cpergroup_y_x_global_desc = WeiGlobalDesc{};
         constexpr auto out_n_k_ho_wo_global_desc       = OutGlobalDesc{};
@@ -104,11 +101,23 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             Sequence<G, N, KPerGroup, Ho, Wo>{},
             Sequence<KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
 
+        constexpr auto N0 = 1;
         // output tensor  A matrix
-        constexpr auto out_gemmg_gemmktotal_gemmm_global_desc = transform_tensor_descriptor(
+        constexpr auto I3 = Number<3>{};
+        constexpr auto I4 = Number<4>{};
+        constexpr auto out_g_n0_n1_kpergroup_hw_global_desc = transform_tensor_descriptor(
             unfold_tensor_descriptor(out_g_n_kpergroup_ho_wo_global_desc,I3,I4),
-            make_tuple(PassThrough<G>{}, PassThrough<KPerGroup>{}, Merge<Sequence<N, Ho*Wo>>{}),
-            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1, 3>{}),
+            make_tuple(PassThrough<G>{}, 
+                       UnMerge<N0,N/N0>{}, 
+                       PassThrough<KPerGroup>{},
+                       PassThrough<Ho*Wo>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3>{}),
+            make_tuple(Sequence<0>{}, Sequence<1,2>{}, Sequence<3>{}, Sequence<4>{}));
+
+        constexpr auto out_gemmg_gemmktotal_gemmm_global_desc = transform_tensor_descriptor(
+            out_g_n0_n1_kpergroup_hw_global_desc,
+            make_tuple(Merge<G,N0>{}, PassThrough<KPerGroup>{}, Merge<Sequence<N/N0, Ho*Wo>>{}),
+            make_tuple(Sequence<0,1>{}, Sequence<3>{}, Sequence<2, 4>{}),
             make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
 
         constexpr auto out_gemmg_gemmk_gemmm_gemmkpack_global_desc = transform_tensor_descriptor(

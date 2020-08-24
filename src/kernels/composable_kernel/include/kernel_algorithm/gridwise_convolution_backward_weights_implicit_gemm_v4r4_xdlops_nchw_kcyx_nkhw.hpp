@@ -49,6 +49,9 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                         const ABFloat* const __restrict__ p_wei_global,
                         CFloat* const __restrict__ p_out_global) const
     {
+        constexpr auto I3 = Number<3>{};
+        constexpr auto I4 = Number<4>{};
+
         constexpr auto in_n_c_hi_wi_global_desc        = InGlobalDesc{};
         constexpr auto wei_k_cpergroup_y_x_global_desc = WeiGlobalDesc{};
         constexpr auto out_n_k_ho_wo_global_desc       = OutGlobalDesc{};
@@ -103,9 +106,9 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         // output tensor  A matrix
         constexpr auto out_gemmg_gemmktotal_gemmm_global_desc = transform_tensor_descriptor(
-            out_g_n_kpergroup_ho_wo_global_desc,
-            make_tuple(PassThrough<G>{}, PassThrough<KPerGroup>{}, Merge<Sequence<N, Ho, Wo>>{}),
-            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1, 3, 4>{}),
+            unfold_tensor_descriptor(out_g_n_kpergroup_ho_wo_global_desc,I3,I4),
+            make_tuple(PassThrough<G>{}, PassThrough<KPerGroup>{}, Merge<Sequence<N, Ho*Wo>>{}),
+            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1, 3>{}),
             make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
 
         constexpr auto out_gemmg_gemmk_gemmm_gemmkpack_global_desc = transform_tensor_descriptor(

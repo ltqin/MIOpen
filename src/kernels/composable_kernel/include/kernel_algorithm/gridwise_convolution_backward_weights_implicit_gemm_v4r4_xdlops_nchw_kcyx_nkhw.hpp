@@ -101,7 +101,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             Sequence<G, N, KPerGroup, Ho, Wo>{},
             Sequence<KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
 
-        constexpr auto N0 = 1;
+        constexpr size_t N0 = 1;
         // output tensor  A matrix
         constexpr auto I3 = Number<3>{};
         constexpr auto I4 = Number<4>{};

@@ -64,7 +64,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr index_t Y = wei_k_cpergroup_y_x_global_desc.GetLengths()[2];
         constexpr index_t X = wei_k_cpergroup_y_x_global_desc.GetLengths()[3];
-
+        static_assert(G == 1,"wrong!,G must be one");
         constexpr index_t CPerGroup = C / G;
         constexpr index_t KPerGroup = K / G;
 
@@ -169,15 +169,15 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         // weight tensor  C matrix KCYX
         constexpr auto wei_g_k_c_y_x_global_desc =
             make_native_tensor_descriptor(Sequence<N0, K, C, Y, X>{},
-            Sequence<0, C * Y * X, Y * X, X,1>{});
+            Sequence<0, C * Y * X, Y * X, X, 1>{});
 
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = transform_tensor_descriptor(
-            unfold_tensor_descriptor(wei_g_k_c_y_x_global_desc, Number<2>{}, Number<4>{}),
+            wei_g_k_c_y_x_global_desc,
             make_tuple(
                 PassThrough<N0>{}, 
                 PassThrough<GemmM>{}, 
-                PassThrough<GemmN>{}),
-            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
+                Merge<Sequence<C, Y, X>>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2, 3, 4>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
 
         // construct tensor descriptor for group convolution

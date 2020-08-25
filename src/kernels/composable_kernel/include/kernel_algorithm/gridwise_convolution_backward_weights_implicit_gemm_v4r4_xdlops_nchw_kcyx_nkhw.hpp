@@ -76,7 +76,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr index_t ConvDilationH = ConvDilations{}[0];
         constexpr index_t ConvDilationW = ConvDilations{}[1];
 
-        constexpr index_t N0 = 16;
+        constexpr index_t N0 = 8;
         constexpr index_t N1 = N / N0;
 
         constexpr index_t GemmG      = G * N0;

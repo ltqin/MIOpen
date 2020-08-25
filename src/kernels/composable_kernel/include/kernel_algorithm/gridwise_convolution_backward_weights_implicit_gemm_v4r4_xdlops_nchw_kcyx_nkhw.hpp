@@ -78,6 +78,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr index_t N0 = 16;
         constexpr index_t N1 = N / N0;
+        static_assert(N % N0 == 0,"wrong! N should be multiple of N0 ");
 
         constexpr index_t GemmG      = G * N0;
         constexpr index_t GemmM      = KPerGroup;

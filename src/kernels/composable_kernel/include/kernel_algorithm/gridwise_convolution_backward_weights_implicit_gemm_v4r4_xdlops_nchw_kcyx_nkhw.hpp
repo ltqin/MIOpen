@@ -96,7 +96,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         // construct tensor descriptor for group convolution
         constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, CPerGroup, Hi, Wi>{},
-            Sequence<CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
+            Sequence<N * CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
 
         constexpr auto wei_n0_g_kpergroup_cpergroup_y_x_global_desc =
             make_native_tensor_descriptor(Sequence<N0, G, KPerGroup, CPerGroup, Y, X>{},
@@ -104,7 +104,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr auto out_g_n_kpergroup_ho_wo_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, KPerGroup, Ho, Wo>{},
-            Sequence<KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
+            Sequence<N * KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
 
         // output tensor  A matrix
         constexpr auto I3 = Number<3>{};
@@ -188,7 +188,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         static_assert(b_gemmk == GemmK && b_gemmn == GemmN && b_gemmkpack == GemmKPack,"error B matrix");
         // weight tensor  C matrix
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = transform_tensor_descriptor(
-            unfold_tensor_descriptor(wei_n0_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{}),
+            unfold_tensor_descriptor(wei_n0_g_kpergroup_cpergroup_y_x_global_desc, Number<3>{}, Number<5>{}),
             make_tuple(
                 Merge<Sequence<G, N0>>{}, 
                 PassThrough<GemmM>{}, 

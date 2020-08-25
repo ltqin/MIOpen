@@ -95,7 +95,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         // construct tensor descriptor for group convolution
         constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, CPerGroup, Hi, Wi>{},
-            Sequence<CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
+            Sequence<N * CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
 
         constexpr auto wei_n0_g_kpergroup_cpergroup_y_x_global_desc =
             make_native_tensor_descriptor(Sequence<N0, G, KPerGroup, CPerGroup, Y, X>{},

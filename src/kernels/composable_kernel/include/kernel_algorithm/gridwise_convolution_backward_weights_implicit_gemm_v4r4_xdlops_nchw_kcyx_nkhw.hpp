@@ -98,11 +98,9 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             Sequence<G, N, CPerGroup, Hi, Wi>{},
             Sequence<CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
 
-        /*constexpr auto wei_n0_g_kpergroup_cpergroup_y_x_global_desc =
+        constexpr auto wei_n0_g_kpergroup_cpergroup_y_x_global_desc =
             make_native_tensor_descriptor(Sequence<N0, G, KPerGroup, CPerGroup, Y, X>{},
-            Sequence<0, KPerGroup * CPerGroup * Y * X, CPerGroup * Y * X, Y * X, X,1>{});*/
-        constexpr auto wei_g_kpergroup_cpergroup_y_x_global_desc =
-            make_native_tensor_descriptor_packed(Sequence<G, KPerGroup, CPerGroup, Y, X>{});
+            Sequence<0, KPerGroup * CPerGroup * Y * X, CPerGroup * Y * X, Y * X, X,1>{});
 
         constexpr auto out_g_n_kpergroup_ho_wo_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, KPerGroup, Ho, Wo>{},
@@ -189,16 +187,14 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         static_assert(b_gemmk == GemmK && b_gemmn == GemmN && b_gemmkpack == GemmKPack,"error B matrix");
         // weight tensor  C matrix
-        /*constexpr auto wei_gemmg_gemmm_gemmn_global_desc = transform_tensor_descriptor(
-            unfold_tensor_descriptor(wei_n0_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{}),
+        constexpr auto wei_gemmg_gemmm_gemmn_global_desc = transform_tensor_descriptor(
+            unfold_tensor_descriptor(wei_n0_g_kpergroup_cpergroup_y_x_global_desc, Number<3>{}, Number<5>{}),
             make_tuple(
                 Merge<Sequence<G, N0>>{}, 
                 PassThrough<GemmM>{}, 
                 PassThrough<GemmN>{}),
             make_tuple(Sequence<1, 0>{}, Sequence<2>{}, Sequence<3>{}),
-            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));*/
-        constexpr auto wei_gemmg_gemmm_gemmn_global_desc = unfold_tensor_descriptor(
-            wei_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{});
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
 
         constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];
         constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];

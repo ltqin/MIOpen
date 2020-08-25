@@ -79,7 +79,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr index_t N0 = 1;
         constexpr index_t N1 = N / N0;
 
-        constexpr index_t GemmG      = G*N0;
+        constexpr index_t GemmG      = G * N0;
         constexpr index_t GemmM      = KPerGroup;
         constexpr index_t GemmN      = CPerGroup * Y * X;
         constexpr index_t GemmKTotal = N1 * Ho * Wo; 
@@ -99,7 +99,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr auto wei_n0_g_kpergroup_cpergroup_y_x_global_desc =
             make_native_tensor_descriptor(Sequence<N0, G, KPerGroup, CPerGroup, Y, X>{},
-            Sequence<0, KPerGroup*CPerGroup*Y*X, CPerGroup*Y*X, Y*X, X,1);
+            Sequence<0, KPerGroup*CPerGroup*Y*X, CPerGroup*Y*X, Y*X, X,1>{});
 
         constexpr auto out_g_n_kpergroup_ho_wo_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, KPerGroup, Ho, Wo>{},

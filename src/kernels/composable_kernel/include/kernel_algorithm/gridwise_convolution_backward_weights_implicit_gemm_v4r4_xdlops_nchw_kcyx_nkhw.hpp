@@ -175,7 +175,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             wei_g_k_c_y_x_global_desc,
             make_tuple(
                 PassThrough<N0>{}, 
-                PassThrough<GemmM>>{}, 
+                PassThrough<GemmM>{}, 
                 Merge<Sequence<C, Y, X>>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2, 3, 4>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));

@@ -801,6 +801,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr auto b_g_k_n_kpack_global_desc = BGlobalDesc{};
         constexpr auto c_g_m_n_global_desc       = CGlobalDesc{};
 
+        constexpr auto Gi    = b_g_k_n_kpack_global_desc.GetLengths()[0];
         constexpr auto G     = c_g_m_n_global_desc.GetLengths()[0];
         constexpr auto M     = c_g_m_n_global_desc.GetLengths()[1];
         constexpr auto N     = c_g_m_n_global_desc.GetLengths()[2];
@@ -818,7 +819,7 @@ struct GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2
         constexpr index_t NWavePerBlock = NPerBlock / NPerWave;
 
         constexpr auto block_work_sequence =
-            make_batch_block_work_sequence<G, MBlockWork, NBlockWork, WorkgroupSchdOrder>{}.get();
+            make_batch_block_work_sequence<Gi, MBlockWork, NBlockWork, WorkgroupSchdOrder>{}.get();
         constexpr auto block_work_desc = make_cluster_descriptor(block_work_sequence);
 
         const auto block_work_id = block_work_desc.CalculateClusterIndex(get_block_1d_id());

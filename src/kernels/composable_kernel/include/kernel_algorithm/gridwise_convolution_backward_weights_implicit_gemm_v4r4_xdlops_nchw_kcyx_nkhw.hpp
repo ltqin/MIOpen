@@ -326,7 +326,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             3, // Src vetor read diemsnion of B matrix is GemmKPack
             GemmBBlockCopySrcDataPerRead_GemmKPack,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
-            CGlobalMemoryDataOperation, //InMemoryDataOperation::AtomicAdd,
+            InMemoryDataOperation::AtomicAdd,
             WorkgroupSchdOrder>{};
 
         gridwise_gemm.Run(p_wei_global, p_in_global, p_out_global);

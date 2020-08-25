@@ -76,7 +76,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr index_t ConvDilationH = ConvDilations{}[0];
         constexpr index_t ConvDilationW = ConvDilations{}[1];
 
-        constexpr index_t N0 = 8;
+        constexpr index_t N0 = 16;
         constexpr index_t N1 = N / N0;
 
         constexpr index_t GemmG      = G * N0;
@@ -98,8 +98,8 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             Sequence<CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
 
         constexpr auto wei_n0_g_kpergroup_cpergroup_y_x_global_desc =
-            make_native_tensor_descriptor(Sequence<G, N0,  KPerGroup, CPerGroup, Y, X>{},
-            Sequence<KPerGroup * CPerGroup * Y * X, 0, CPerGroup * Y * X, Y * X, X,1>{});
+            make_native_tensor_descriptor(Sequence<N0, G, KPerGroup, CPerGroup, Y, X>{},
+            Sequence<0, KPerGroup * CPerGroup * Y * X, CPerGroup * Y * X, Y * X, X,1>{});
 
         constexpr auto out_g_n_kpergroup_ho_wo_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, KPerGroup, Ho, Wo>{},
@@ -192,7 +192,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                 Merge<Sequence<G, N0>>{}, 
                 PassThrough<GemmM>{}, 
                 PassThrough<GemmN>{}),
-            make_tuple(Sequence<0, 1>{}, Sequence<2>{}, Sequence<3>{}),
+            make_tuple(Sequence<1, 0>{}, Sequence<2>{}, Sequence<3>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
 
         constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];

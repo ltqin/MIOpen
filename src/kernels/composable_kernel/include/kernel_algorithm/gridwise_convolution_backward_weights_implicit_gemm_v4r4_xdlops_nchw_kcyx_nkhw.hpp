@@ -99,11 +99,11 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr auto wei_n0_g_kpergroup_cpergroup_y_x_global_desc =
             make_native_tensor_descriptor(Sequence<N0, G, KPerGroup, CPerGroup, Y, X>{},
-            Sequence<0, KPerGroup*CPerGroup*Y*X, CPerGroup*Y*X, Y*X, X,1>{});
+            Sequence<0, KPerGroup * CPerGroup * Y * X, CPerGroup * Y * X, Y * X, X,1>{});
 
         constexpr auto out_g_n_kpergroup_ho_wo_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, KPerGroup, Ho, Wo>{},
-            Sequence<KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
+            Sequence<N * KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
 
         // output tensor  A matrix
         constexpr auto I3 = Number<3>{};

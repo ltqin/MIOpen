@@ -139,8 +139,8 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(PassThrough<G>{},
                        UnMerge<Sequence<N0, N1>>{},
                        PassThrough<CPerGroup>{},
-                       PassThrough<hi>{},
-                       PassThrough<wi>{}),
+                       PassThrough<Hi>{},
+                       PassThrough<Wi>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3>{}, Sequence<4>{}),
             make_tuple(Sequence<0>{}, Sequence<1,2>{},Sequence<3>{}, Sequence<4>{}, Sequence<5>{}));
 
@@ -191,7 +191,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(
                 Merge<Sequence<G, N0>>{}, 
                 PassThrough<GemmM>{}, 
-                PassThrough<GemmN>>{}),
+                PassThrough<GemmN>{}),
             make_tuple(Sequence<1,0>{}, Sequence<2>{}, Sequence<3>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
 

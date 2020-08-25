@@ -192,7 +192,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                 Merge<Sequence<G, N0>>{}, 
                 PassThrough<GemmM>{}, 
                 PassThrough<GemmN>{}),
-            make_tuple(Sequence<0 1>{}, Sequence<2>{}, Sequence<3>{}),
+            make_tuple(Sequence<0, 1>{}, Sequence<2>{}, Sequence<3>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
 
         constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];

@@ -187,7 +187,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         static_assert(b_gemmk == GemmK && b_gemmn == GemmN && b_gemmkpack == GemmKPack,"error B matrix");
         // weight tensor  C matrix
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = transform_tensor_descriptor(
-            unfold_tensor_descriptor(wei_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{}),
+            unfold_tensor_descriptor(wei_n0_g_kpergroup_cpergroup_y_x_global_desc, Number<2>{}, Number<4>{}),
             make_tuple(
                 Merge<Sequence<G, N0>>{}, 
                 PassThrough<GemmM>{}, 

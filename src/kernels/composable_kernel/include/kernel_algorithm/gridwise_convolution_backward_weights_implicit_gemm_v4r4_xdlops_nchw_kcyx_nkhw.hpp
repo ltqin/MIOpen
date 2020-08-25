@@ -93,10 +93,97 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         static_assert(GemmM % GemmMPerBlock == 0 && GemmN % GemmNPerBlock == 0 &&
                           GemmK % GemmKPerBlock == 0,
                       "wrong! cannot divide work evenly among block");
+        
+
+        // output tensor  A matrix
+        constexpr auto out_g_n1_k_hw_global_desc = transform_tensor_descriptor(
+            unfold_tensor_descriptor(out_n_k_ho_wo_global_desc,Number<2>{},Number<3>{}),
+            make_tuple(UnMerge<Sequence<N0, N1>>{}, 
+                       PassThrough<K>{},
+                       PassThrough<Ho*Wo>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
+            make_tuple(Sequence<0, 1>{}, Sequence<2>{}, Sequence<3>{}));
+
+        constexpr auto out_gemmg_gemmktotal_gemmm_global_desc = transform_tensor_descriptor(
+            out_g_n1_k_hw_global_desc,
+            make_tuple(PassThrough<GemmG>{}, 
+                       PassThrough<KPerGroup>{}, 
+                       Merge<Sequence<N1, Ho*Wo>>{}),
+            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1, 3>{}),
+            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
+
+        constexpr auto out_gemmg_gemmk_gemmm_gemmkpack_global_desc = transform_tensor_descriptor(
+            out_gemmg_gemmktotal_gemmm_global_desc,
+            make_tuple(PassThrough<GemmG>{}, 
+                       UnMerge<Sequence<GemmK, GemmKPack>>{},
+                       PassThrough<GemmM>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
+            make_tuple(Sequence<0>{}, Sequence<1,3>{}, Sequence<2>{}));
+
+        // input tensor matrix B
+        constexpr auto in_g_n1_c_hi_wi_global_desc = transform_tensor_descriptor(
+            in_n_c_hi_wi_global_desc,
+            make_tuple(UnMerge<Sequence<N0, N1>>{},
+                       PassThrough<C>{},
+                       PassThrough<Hi>{},
+                       PassThrough<Wi>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3>{}),
+            make_tuple(Sequence<0,1>{}, Sequence<2>{},Sequence<3>{}, Sequence<4>{}));
+
+        constexpr auto in_g_n_cpergroup_hip_wip_global_desc = transform_tensor_descriptor(
+            in_g_n1_c_hi_wi_global_desc,
+            make_tuple(PassThrough<N0>{},
+                       PassThrough<N1>{},
+                       PassThrough<CPerGroup>{},
+                       Pad<Sequence<Hi, Wi>, InLeftPads, InRightPads>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3, 4>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3, 4>{}));
+
+        constexpr index_t Hip = in_g_n_cpergroup_hip_wip_global_desc.GetLengths()[3];
+        constexpr index_t Wip = in_g_n_cpergroup_hip_wip_global_desc.GetLengths()[4];
+
+        constexpr auto in_g_n_cpergroup_y_ho_x_wo_global_desc = transform_tensor_descriptor(
+            in_g_n_cpergroup_hip_wip_global_desc,
+            make_tuple(PassThrough<GemmG>{},
+                       PassThrough<N1>{},
+                       PassThrough<CPerGroup>{},
+                       Embed<Hip, Sequence<Y, Ho>, Sequence<ConvDilationH, ConvStrideH, 0>>{},
+                       Embed<Wip, Sequence<X, Wo>, Sequence<ConvDilationW, ConvStrideW, 0>>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3>{}, Sequence<4>{}),
+            make_tuple(
+                Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3, 4>{}, Sequence<5, 6>{}));
+
+        constexpr auto in_gemmg_gemmktotal_gemmn_global_desc = transform_tensor_descriptor(
+            in_g_n_cpergroup_y_ho_x_wo_global_desc,
+            make_tuple(PassThrough<GemmG>{}, Merge<Sequence<CPerGroup, Y, X>>{}, Merge<Sequence<N1, Ho, Wo>>{}),
+            make_tuple(Sequence<0>{}, Sequence<2, 3, 5>{}, Sequence<1, 4, 6>{}),
+            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
+
+        constexpr auto in_gemmg_gemmk_gemmn_gemmkpack_global_desc = transform_tensor_descriptor(
+            in_gemmg_gemmktotal_gemmn_global_desc,
+            make_tuple(
+                PassThrough<GemmG>{}, UnMerge<Sequence<GemmK, GemmKPack>>{}, PassThrough<GemmN>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
+            make_tuple(Sequence<0>{}, Sequence<1, 3>{}, Sequence<2>{}));
+
+        // weight tensor  C matrix
+        constexpr auto wei_n0_k_c_y_x_global_desc =
+            make_native_tensor_descriptor(Sequence<N0, KPerGroup, CPerGroup, Y, X>{},
+            Sequence<0, CPerGroup * Y * X, Y * X, X,1>{});
+
+        constexpr auto wei_gemmg_gemmm_gemmn_global_desc = transform_tensor_descriptor(
+            unfold_tensor_descriptor(wei_n0_k_c_y_x_global_desc, Number<2>{}, Number<4>{}),
+            make_tuple(
+                PassThrough<N0>{}, 
+                PassThrough<GemmM>{}, 
+                PassThrough<GemmN>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
+
         // construct tensor descriptor for group convolution
-        constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
+ /*       constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, CPerGroup, Hi, Wi>{},
-            Sequence<N * CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
+            Sequence<CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
 
         constexpr auto wei_n0_g_kpergroup_cpergroup_y_x_global_desc =
             make_native_tensor_descriptor(Sequence<N0, G, KPerGroup, CPerGroup, Y, X>{},
@@ -104,7 +191,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 
         constexpr auto out_g_n_kpergroup_ho_wo_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, KPerGroup, Ho, Wo>{},
-            Sequence<N * KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
+            Sequence<KPerGroup * Ho * Wo, K * Ho * Wo, Ho * Wo, Wo, 1>{});
 
         // output tensor  A matrix
         constexpr auto I3 = Number<3>{};
@@ -205,6 +292,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             printf("\nGridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
                      a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
         }
+        */
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
             out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[0] > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
         // gridwise batch-GEMM

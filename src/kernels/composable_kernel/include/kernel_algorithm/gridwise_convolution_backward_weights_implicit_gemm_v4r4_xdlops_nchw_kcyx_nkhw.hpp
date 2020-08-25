@@ -294,7 +294,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         }
         */
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
-            out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[0] > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
+            N0 > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<
             GridSize,
@@ -326,7 +326,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             3, // Src vetor read diemsnion of B matrix is GemmKPack
             GemmBBlockCopySrcDataPerRead_GemmKPack,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
-            InMemoryDataOperation::AtomicAdd,
+            CGlobalMemoryDataOperation,//InMemoryDataOperation::AtomicAdd,
             WorkgroupSchdOrder>{};
 
         gridwise_gemm.Run(p_wei_global, p_in_global, p_out_global);

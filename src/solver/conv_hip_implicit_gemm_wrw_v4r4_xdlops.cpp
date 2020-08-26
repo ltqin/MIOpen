@@ -150,7 +150,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
         }
         else if(ctx.IsFp16())
         {
-            tmp = {256, 256, 8, 128, 128, 8, false, true,4};
+            tmp = {256, 256, 8, 128, 128, 8, false, true,128};
             //tmp = {32, 32, 8, 64, 64, 8, false, true};
             bool all_visited = false;
             do
@@ -160,6 +160,8 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                     // list in reverse order of importance,
                     // and favor large GEMM
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
+                        break;
+                    if(!PreviousTwoPower<1, 128>(tmp.GemmKBlocks))
                         break;
                     if(!PreviousTwoPower<4, 8>(tmp.GemmKPack))
                         break;
@@ -529,7 +531,8 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsValidValue() const
         && IsTwoPower<1, 8>(GemmKPerBlock)
         && IsTwoPower<4, 128>(GemmMPerWave)
         && IsTwoPower<4, 128>(GemmNPerWave)
-        && IsTwoPower<1, 8>(GemmKPack);
+        && IsTwoPower<1, 8>(GemmKPack)
+        && IsTwoPower<1, 8>(GemmKBlocks);
     // clang-format on
 }
 
@@ -560,8 +563,12 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsReallyValid(const ConvolutionContex
 
         const auto gemm_k = gemm_k_total / GemmKPack;
 
+        if(gemm_k % GemmKBlocks != 0)
+            return false;
+        const auto gemm_k_sub = gemm_k / GemmKBlocks;
+
         if(!(gemm_m % GemmMPerBlock == 0 && gemm_n % GemmNPerBlock == 0 &&
-             gemm_k % GemmKPerBlock == 0))
+             gemm_k_sub % GemmKPerBlock == 0))
             return false;
     }
 

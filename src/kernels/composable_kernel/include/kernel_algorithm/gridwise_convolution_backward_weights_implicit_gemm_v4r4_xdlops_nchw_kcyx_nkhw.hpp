@@ -143,7 +143,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(Sequence<0>{}, Sequence<1,2>{},Sequence<3>{}, Sequence<4>{}, Sequence<5>{}));
 
         constexpr auto in_gemmg_nsub_cpergroup_hip_wip_global_desc = transform_tensor_descriptor(
-            in_g_n0_n1_cpergroup_hi_wi_global_desc,
+            in_g_gemmkblocks_nsub_cpergroup_hi_wi_global_desc,
             make_tuple(Merge<Sequence<G, GemmKBlocks>>{},
                        PassThrough<NSub>{},
                        PassThrough<CPerGroup>{},

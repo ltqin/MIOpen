@@ -56,6 +56,7 @@ extern "C" __global__
     constexpr index_t GemmMPerWave  = CK_PARAM_TUNABLE_GEMM_M_PER_WAVE;
     constexpr index_t GemmNPerWave  = CK_PARAM_TUNABLE_GEMM_N_PER_WAVE;
     constexpr index_t GemmKPack     = CK_PARAM_TUNABLE_GEMM_KPACK;
+    constexpr index_t GemmKBlocks   = CK_PARAM_TUNABLE_GEMM_K_BLOCKS;
 
     // read params: dependent parameters
     constexpr index_t BlockSize = CK_PARAM_DEPENDENT_BLOCK_SIZE;
@@ -173,6 +174,7 @@ extern "C" __global__
             GemmBBlockCopyDstAccessOrder,
             GemmBBlockCopySrcDataPerRead_GemmKPack,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
-            wkgrp_schd_order>{};
+            wkgrp_schd_order,
+            GemmKBlocks>{};
     gridwise_conv.Run(p_in_global, p_out_global, p_wei_global);
 }

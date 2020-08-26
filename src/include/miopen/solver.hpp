@@ -1825,6 +1825,7 @@ struct PerformanceImplicitGemmWrwV4R4Xdlops
     int GemmKPack;
     bool GemmAThreadCopyMoreGemmK;
     bool GemmBThreadCopyMoreGemmKPack;
+    int  GemmKBlocks;
 
     PerformanceImplicitGemmWrwV4R4Xdlops(int, int, int, int, int, int, bool, bool);
     PerformanceImplicitGemmWrwV4R4Xdlops();

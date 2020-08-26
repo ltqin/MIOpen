@@ -159,6 +159,8 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                 {
                     // list in reverse order of importance,
                     // and favor large GEMM
+                    if(!PreviousTwoPower<1, 128>(tmp.GemmKBlocks))
+                        break;
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
                         break;
                     if(!PreviousTwoPower<4, 8>(tmp.GemmKPack))
@@ -171,8 +173,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                         break;
                     if(!PreviousTwoPower<4, 256>(tmp.GemmMPerBlock))
                         break;
-                    if(!PreviousTwoPower<1, 128>(tmp.GemmKBlocks))
-                        break;
+                    
                     
                     all_visited = true;
                 } while(false);
@@ -548,7 +549,12 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsReallyValid(const ConvolutionContex
         return false;
 
     bool valid = false;
-
+    //n should be multiple of GemmKBlocks
+    {
+        const auto n  = ConvolutionContextInterpreter::GetBatchN(ctx);
+        if( n % GemmKBlocks !=0)
+            return false;
+    }
     // check blockwise GEMM size
     {
         int gemm_m       = -1;

@@ -5,8 +5,8 @@
 extern "C" __global__
     __launch_bounds__(CK_PARAM_DEPENDENT_BLOCK_SIZE) void gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw_fp16(
         const FLOAT* const __restrict__ p_in_global,
-        const FLOAT* const __restrict__ p_wei_global,
-        FLOAT_ACCUM* const __restrict__ p_out_global)
+        const FLOAT* const __restrict__ p_out_global,
+        FLOAT_ACCUM* const __restrict__ p_wei_global)
 {
     using namespace ck;
 
@@ -174,5 +174,5 @@ extern "C" __global__
             GemmBBlockCopySrcDataPerRead_GemmKPack,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             wkgrp_schd_order>{};
-    gridwise_conv.Run(p_in_global, p_wei_global, p_out_global);
+    gridwise_conv.Run(p_in_global, p_out_global, p_wei_global);
 }

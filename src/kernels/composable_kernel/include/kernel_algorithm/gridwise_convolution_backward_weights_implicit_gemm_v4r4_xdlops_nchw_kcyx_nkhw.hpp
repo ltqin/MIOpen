@@ -46,8 +46,8 @@ template <index_t GridSize,
 struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 {
     __device__ void Run(const ABFloat* const __restrict__ p_in_global,
-                        const ABFloat* const __restrict__ p_wei_global,
-                        CFloat* const __restrict__ p_out_global) const
+                        const ABFloat* const __restrict__ p_out_global,
+                        CFloat* const __restrict__ p_wei_global) const
     {
         constexpr auto in_n_c_hi_wi_global_desc        = InGlobalDesc{};
         constexpr auto wei_k_cpergroup_y_x_global_desc = WeiGlobalDesc{};
@@ -81,8 +81,8 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         static_assert(N % N0 == 0,"wrong! N should be multiple of N0 ");
 
         constexpr index_t GemmG      = G * N0;
-        constexpr index_t GemmM      = K;//KPerGroup;
-        constexpr index_t GemmN      = C * Y * X;//CPerGroup * Y * X;
+        constexpr index_t GemmM      = KPerGroup;
+        constexpr index_t GemmN      = CPerGroup * Y * X;
         constexpr index_t GemmKTotal = N1 * Ho * Wo; 
 
         static_assert(GemmKTotal % GemmKPack == 0,
@@ -96,7 +96,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         
 
         // output tensor  A matrix NKHoWo
-        constexpr auto out_g_n1_k_hw_global_desc = transform_tensor_descriptor(
+  /*      constexpr auto out_g_n1_k_hw_global_desc = transform_tensor_descriptor(
             unfold_tensor_descriptor(out_n_k_ho_wo_global_desc,Number<2>{},Number<3>{}),
             make_tuple(UnMerge<Sequence<N0, N1>>{}, 
                        PassThrough<GemmM>{},
@@ -179,9 +179,9 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                 Merge<Sequence<C, Y, X>>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2, 3, 4>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
-
+*/
         // construct tensor descriptor for group convolution
- /*       constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
+        constexpr auto in_g_n_cpergroup_hi_wi_global_desc = make_native_tensor_descriptor(
             Sequence<G, N, CPerGroup, Hi, Wi>{},
             Sequence<CPerGroup * Hi * Wi, C * Hi * Wi, Hi * Wi, Wi, 1>{});
 
@@ -232,7 +232,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3>{}, Sequence<4>{}),
             make_tuple(Sequence<0>{}, Sequence<1,2>{},Sequence<3>{}, Sequence<4>{}, Sequence<5>{}));
 
-        constexpr auto in_g_n_cpergroup_hip_wip_global_desc = transform_tensor_descriptor(
+        constexpr auto in_gemmg_n1_cpergroup_hip_wip_global_desc = transform_tensor_descriptor(
             in_g_n0_n1_cpergroup_hi_wi_global_desc,
             make_tuple(Merge<Sequence<G, N0>>{},
                        PassThrough<N1>{},
@@ -241,11 +241,11 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(Sequence<0, 1>{}, Sequence<2>{}, Sequence<3>{}, Sequence<4, 5>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3, 4>{}));
 
-        constexpr index_t Hip = in_g_n_cpergroup_hip_wip_global_desc.GetLengths()[3];
-        constexpr index_t Wip = in_g_n_cpergroup_hip_wip_global_desc.GetLengths()[4];
+        constexpr index_t Hip = in_gemmg_n1_cpergroup_hip_wip_global_desc.GetLengths()[3];
+        constexpr index_t Wip = in_gemmg_n1_cpergroup_hip_wip_global_desc.GetLengths()[4];
 
-        constexpr auto in_g_n_cpergroup_y_ho_x_wo_global_desc = transform_tensor_descriptor(
-            in_g_n_cpergroup_hip_wip_global_desc,
+        constexpr auto in_gemmg_n1_cpergroup_y_ho_x_wo_global_desc = transform_tensor_descriptor(
+            in_gemmg_n1_cpergroup_hip_wip_global_desc,
             make_tuple(PassThrough<GemmG>{},
                        PassThrough<N1>{},
                        PassThrough<CPerGroup>{},
@@ -256,7 +256,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                 Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3, 4>{}, Sequence<5, 6>{}));
 
         constexpr auto in_gemmg_gemmktotal_gemmn_global_desc = transform_tensor_descriptor(
-            in_g_n_cpergroup_y_ho_x_wo_global_desc,
+            in_gemmg_n1_cpergroup_y_ho_x_wo_global_desc,
             make_tuple(PassThrough<GemmG>{}, Merge<Sequence<CPerGroup, Y, X>>{}, Merge<Sequence<N1, Ho, Wo>>{}),
             make_tuple(Sequence<0>{}, Sequence<2, 3, 5>{}, Sequence<1, 4, 6>{}),
             make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
@@ -292,7 +292,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             printf("\nGridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
                      a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
         }
-        */
+        
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
             N0 > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
         // gridwise batch-GEMM
@@ -329,7 +329,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             CGlobalMemoryDataOperation,//InMemoryDataOperation::AtomicAdd,
             WorkgroupSchdOrder>{};
 
-        gridwise_gemm.Run(p_wei_global, p_in_global, p_out_global);
+        gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
     }
 };
 

@@ -533,7 +533,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsValidValue() const
         && IsTwoPower<4, 128>(GemmMPerWave)
         && IsTwoPower<4, 128>(GemmNPerWave)
         && IsTwoPower<1, 8>(GemmKPack)
-        && IsTwoPower<1, 8>(GemmKBlocks);
+        && IsTwoPower<1, 128>(GemmKBlocks);
     // clang-format on
 }
 

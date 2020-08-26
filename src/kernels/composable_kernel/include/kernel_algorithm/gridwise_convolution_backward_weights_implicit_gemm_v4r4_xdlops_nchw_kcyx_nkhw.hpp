@@ -131,6 +131,10 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
             make_tuple(Sequence<0>{}, Sequence<1,3>{}, Sequence<2>{}));
 
+        constexpr auto a_gemmk = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[1];
+        constexpr auto a_gemmm = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[2];
+        constexpr auto a_gemmkpack = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[3];
+        static_assert(a_gemmk == GemmK && a_gemmm == GemmM && a_gemmkpack == GemmKPack,"error A matrix");
         // input tensor matrix B
         constexpr auto in_g_gemmkblocks_nsub_cpergroup_hi_wi_global_desc = transform_tensor_descriptor(
             in_g_n_cpergroup_hi_wi_global_desc,
@@ -178,6 +182,10 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
             make_tuple(Sequence<0>{}, Sequence<1, 3>{}, Sequence<2>{}));
 
+        constexpr auto b_gemmk = in_gemmg_gemmk_gemmn_gemmkpack_global_desc.GetLengths()[1];
+        constexpr auto b_gemmn = in_gemmg_gemmk_gemmn_gemmkpack_global_desc.GetLengths()[2];
+        constexpr auto b_gemmkpack = in_gemmg_gemmk_gemmn_gemmkpack_global_desc.GetLengths()[3];
+        static_assert(b_gemmk == GemmK && b_gemmn == GemmN && b_gemmkpack == GemmKPack,"error B matrix");
         // weight tensor  C matrix
         constexpr auto wei_gemmg_gemmm_gemmn_global_desc = transform_tensor_descriptor(
             unfold_tensor_descriptor(wei_gemmkblocks_g_kpergroup_cpergroup_y_x_global_desc, Number<3>{}, Number<5>{}),
@@ -187,6 +195,16 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                 PassThrough<GemmN>{}),
             make_tuple(Sequence<1, 0>{}, Sequence<2>{}, Sequence<3>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
+
+        constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];
+        constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];
+        static_assert(c_gemmn == GemmN && c_gemmm == GemmM,"error C matrix");
+        
+        if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
+        {
+            printf("\nGridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw\nA matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
+                     a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm, c_gemmn);
+        }
         
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
             GemmG > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;

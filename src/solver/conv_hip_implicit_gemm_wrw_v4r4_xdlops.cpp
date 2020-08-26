@@ -282,7 +282,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGridSize(const ConvolutionContext
         if(!(gemm_m % GemmMPerBlock == 0 && gemm_n % GemmNPerBlock == 0))
             MIOPEN_THROW("invalid performance parameter");
 
-        GridSize = gemm_g * (gemm_m / GemmMPerBlock) * (gemm_n / GemmNPerBlock) * 16;
+        GridSize = gemm_g * (gemm_m / GemmMPerBlock) * (gemm_n / GemmNPerBlock) * 32;
     }
     catch(...)
     {
@@ -660,7 +660,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
             if(ratio > 6.21)
                 return false;
         }
-     /*   else if(grid_size_max_blockwise_gemm > 60){
+        /*else if(grid_size_max_blockwise_gemm > 60){
             if(ratio < 4)
                 return false;
         }

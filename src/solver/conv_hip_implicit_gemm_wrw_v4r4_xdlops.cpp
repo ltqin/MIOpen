@@ -161,8 +161,6 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                     // and favor large GEMM
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
                         break;
-                    if(!PreviousTwoPower<1, 128>(tmp.GemmKBlocks))
-                        break;
                     if(!PreviousTwoPower<4, 8>(tmp.GemmKPack))
                         break;
                     if(!PreviousTwoPower<4, 128>(tmp.GemmNPerWave))
@@ -172,6 +170,8 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                     if(!PreviousTwoPower<4, 256>(tmp.GemmNPerBlock))
                         break;
                     if(!PreviousTwoPower<4, 256>(tmp.GemmMPerBlock))
+                        break;
+                    if(!PreviousTwoPower<1, 128>(tmp.GemmKBlocks))
                         break;
                     
                     all_visited = true;
@@ -643,7 +643,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         const float ratio = float(grid_size) / grid_size_max_blockwise_gemm;
 
         //std::cout << "gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gridsize: " << grid_size << " ratio: " << ratio << " grid_size_max_blockwise_gemm: " << grid_size_max_blockwise_gemm <<  std::endl;
-        std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << " GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave << std::endl;
+        std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << " GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave  << " GemmKBlocks: "<< GemmKBlocks << std::endl;
 
         if(grid_size_max_blockwise_gemm > 600)
         {

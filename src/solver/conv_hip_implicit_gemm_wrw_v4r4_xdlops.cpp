@@ -95,15 +95,17 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::SetNextValue()
             break;
         if(!NextTwoPower<1, 8>(GemmKPack))
             break;
-        if(!NextTwoPower<4, 128>(GemmNPerWave))
+        if(!NextTwoPower<16, 128>(GemmNPerWave))
             break;
-        if(!NextTwoPower<4, 128>(GemmMPerWave))
+        if(!NextTwoPower<16, 128>(GemmMPerWave))
             break;
         if(!NextTwoPower<1, 8>(GemmKPerBlock))
             break;
-        if(!NextTwoPower<4, 256>(GemmNPerBlock))
+        if(!NextTwoPower<32, 256>(GemmNPerBlock))
             break;
-        if(!NextTwoPower<4, 256>(GemmMPerBlock))
+        if(!NextTwoPower<32, 256>(GemmMPerBlock))
+            break;
+        if(!NextTwoPower<1, 128>(GemmKBlocks))
             break;
         return false;
     } while(false);

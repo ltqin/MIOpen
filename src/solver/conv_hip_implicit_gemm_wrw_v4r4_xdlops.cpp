@@ -371,7 +371,9 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmABlockCopyPerformanceParamete
         ClusterLengths_GemmK     = GemmKPerBlock / data_per_thread_copy_gemmk;
         ClusterLengths_GemmM     = GemmMPerBlock / data_per_thread_copy_gemmm;
         ClusterLengths_GemmKPack = GemmKPack / data_per_thread_copy_gemmkpack;
-
+        
+        if(ClusterLengths_GemmK < 0 || ClusterLengths_GemmM < 0 || ClusterLengths_GemmKPack < 0)
+            MIOPEN_THROW("invalid performance parameter");
         // blockwise-copy support that block_size is larger than thread cluster size, which means
         // some threads may not do threadwise copy
         if(block_size < ClusterLengths_GemmK * ClusterLengths_GemmM * ClusterLengths_GemmKPack)
@@ -493,6 +495,9 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         ClusterLengths_GemmK     = GemmKPerBlock / data_per_thread_copy_gemmk;
         ClusterLengths_GemmN     = GemmNPerBlock / data_per_thread_copy_gemmn;
         ClusterLengths_GemmKPack = GemmKPack / data_per_thread_copy_gemmkpack;
+
+        if(ClusterLengths_GemmK < 0 || ClusterLengths_GemmN < 0 || ClusterLengths_GemmKPack < 0)
+            MIOPEN_THROW("invalid performance parameter");
 
         // blockwise-copy support that block_size is larger than thread cluster size, which means
         // some threads may not do threadwise copy
@@ -829,7 +834,11 @@ ConvHipImplicitGemmWrwV4R4Xdlops::GetPerformanceConfig(const ConvolutionContext&
     MIOPEN_LOG_I(config.ToString());
     return config;
 }
-
+static inline bool support_amd_buffer_atomic_add()
+{
+    const auto device_name = ctx.GetStream().GetDeviceName();
+    return StartsWith(device_name, "gfx908");
+}
 ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
     const ConvolutionContext& ctx,
     const PerformanceImplicitGemmWrwV4R4Xdlops& config,
@@ -934,13 +943,9 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
         std::string(" -DCK_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM=") + (miopen::IsDisabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM{}) ? '0' : '1') +
         std::string(" -DCK_WORKAROUND_SWDEV_229564=") + std::to_string(WORKAROUND_SWDEV_229564) +
         std::string(" -DCK_WORKAROUND_SWDEV_231101=") + std::to_string(WORKAROUND_SWDEV_231101) +
-	std::string(" -DCK_USE_AMD_BUFFER_ATOMIC_ADD=1") +
-        //std::string(" -DCK_USE_AMD_BUFFER_ATOMIC_ADD=") + (support_amd_buffer_atomic_add(ctx) ? '1' : '0') +
+        std::string(" -DCK_USE_AMD_BUFFER_ATOMIC_ADD=") + (support_amd_buffer_atomic_add() ? '1' : '0') +
         ctx.general_compile_options;
     // clang-format on
-
-   // result.invoker_factory = conv::MakeImplGemmDataInvokerFactory(ctx);
-   // result.construction_params.push_back(construction_parameters);
 
     result.construction_params.push_back(construction_parameters);
 
@@ -959,12 +964,10 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
                     miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
                 SetTensor(handle, workspaceDesc, workSpace, &zero);
                 if(handle.IsProfilingEnabled()){
-                    std::cout << "set zero time: " << handle.GetKernelTime() << std::endl;
                     elapsed += handle.GetKernelTime();
                 }
                 kernel(tensors.x, tensors.dy, workSpace);
                 if(handle.IsProfilingEnabled()){
-                    std::cout << "work time: " << handle.GetKernelTime() << std::endl;
                     elapsed += handle.GetKernelTime();
                 }
                 CastTensor(handle,
@@ -975,9 +978,6 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
                            tensors.dw,
                            0,
                            0);
-                if(handle.IsProfilingEnabled()){  
-                    std::cout << "fp32 cast fp16  time: " << handle.GetKernelTime() << std::endl;
-                }
             }
             else{
                 handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);

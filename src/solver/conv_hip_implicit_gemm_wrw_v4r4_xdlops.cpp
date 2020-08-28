@@ -93,19 +93,19 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::SetNextValue()
             break;
         if(!NextFlag<false, false>(GemmAThreadCopyMoreGemmK))
             break;
-        if(!NextTwoPower<1, 8>(GemmKPack))
+        if(!NextTwoPower<4, 8>(GemmKPack))
             break;
-        if(!NextTwoPower<16, 128>(GemmNPerWave))
+        if(!NextTwoPower<32, 128>(GemmNPerWave))
             break;
-        if(!NextTwoPower<16, 128>(GemmMPerWave))
+        if(!NextTwoPower<32, 128>(GemmMPerWave))
             break;
-        if(!NextTwoPower<1, 8>(GemmKPerBlock))
+        if(!NextTwoPower<2, 8>(GemmKPerBlock))
             break;
-        if(!NextTwoPower<32, 256>(GemmNPerBlock))
+        if(!NextTwoPower<64, 256>(GemmNPerBlock))
             break;
-        if(!NextTwoPower<32, 256>(GemmMPerBlock))
+        if(!NextTwoPower<64, 256>(GemmMPerBlock))
             break;
-        if(!NextTwoPower<1, 128>(GemmKBlocks))
+        if(!NextTwoPower<32, 128>(GemmKBlocks))
             break;
         return false;
     } while(false);
@@ -651,7 +651,7 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::IsFastToBeUsedForTuning(
         const float ratio = float(grid_size) / grid_size_max_blockwise_gemm;
 
         //std::cout << "gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gridsize: " << grid_size << " ratio: " << ratio << " grid_size_max_blockwise_gemm: " << grid_size_max_blockwise_gemm <<  std::endl;
-        std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << " GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave  << " GemmKBlocks: "<< GemmKBlocks << std::endl;
+        //std::cout << "GemmMPerBlock: " << GemmMPerBlock << " GemmNPerBlock: " << GemmNPerBlock << " GemmKPerBlock: " << GemmKPerBlock << " GemmKPack: " << GemmKPack << " GemmMPerWave: " << GemmMPerWave << " GemmNPerWave: " << GemmNPerWave  << " GemmKBlocks: "<< GemmKBlocks << std::endl;
 
         if(grid_size_max_blockwise_gemm > 600)
         {
@@ -934,6 +934,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
         std::string(" -DCK_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM=") + (miopen::IsDisabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM{}) ? '0' : '1') +
         std::string(" -DCK_WORKAROUND_SWDEV_229564=") + std::to_string(WORKAROUND_SWDEV_229564) +
         std::string(" -DCK_WORKAROUND_SWDEV_231101=") + std::to_string(WORKAROUND_SWDEV_231101) +
+	std::string(" -DCK_USE_AMD_BUFFER_ATOMIC_ADD=1") +
         ctx.general_compile_options;
     // clang-format on
 
@@ -1024,23 +1025,6 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
 
     if(!IsIndexRangeLargeEnough(ctx))
         return false;
-
-#if WORKAROUND_SWDEV_239555
-    if(ctx.IsFp16() || ctx.IsBfp16())
-    {
-        const auto y              = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
-        const auto x              = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
-        const auto in_left_pad_h  = ConvolutionContextInterpreter::GetInputLeftPadH(ctx);
-        const auto in_left_pad_w  = ConvolutionContextInterpreter::GetInputLeftPadW(ctx);
-        const auto in_right_pad_h = ConvolutionContextInterpreter::GetAdjustedInputRightPadH(ctx);
-        const auto in_right_pad_w = ConvolutionContextInterpreter::GetAdjustedInputRightPadW(ctx);
-
-        if((y > 1 || x > 1) &&
-           (in_left_pad_h > 0 || in_left_pad_w > 0 || in_right_pad_h > 0 || in_right_pad_w > 0))
-            return false;
-    }
-#endif
-
     // gemm size
     {
         int gemm_g       = -1;

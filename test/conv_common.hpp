@@ -1898,10 +1898,13 @@ struct conv_driver : test_driver
 
                 if(do_backward_weights && !skip_backward_weights)
                 {
-                    //output.generate(gen_sign_value);
+                #if 1
+                    output.generate(gen_sign_value);
+                #else
                     auto gen_one = [=](auto... is) { return 1; };
                     output.generate(gen_one);
                     input.generate(gen_one);
+                #endif
                     verify(verify_backward_weights_conv<T>{
                         input, weights, output, filter, stats, 0, search, immed});
                 }

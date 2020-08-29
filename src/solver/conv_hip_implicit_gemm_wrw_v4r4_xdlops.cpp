@@ -41,7 +41,7 @@ namespace solver {
 
 PerformanceImplicitGemmWrwV4R4Xdlops::PerformanceImplicitGemmWrwV4R4Xdlops()
     : PerformanceImplicitGemmWrwV4R4Xdlops::PerformanceImplicitGemmWrwV4R4Xdlops(
-          4, 4, 1, 4, 4, 1, false, false,4)
+          32, 32, 2, 16, 16, 4, false, false,4)
 {
 }
 
@@ -95,17 +95,17 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::SetNextValue()
             break;
         if(!NextTwoPower<4, 8>(GemmKPack))
             break;
-        if(!NextTwoPower<32, 128>(GemmNPerWave))
+        if(!NextTwoPower<16, 128>(GemmNPerWave))
             break;
-        if(!NextTwoPower<32, 128>(GemmMPerWave))
+        if(!NextTwoPower<16, 128>(GemmMPerWave))
             break;
         if(!NextTwoPower<2, 8>(GemmKPerBlock))
             break;
-        if(!NextTwoPower<64, 256>(GemmNPerBlock))
+        if(!NextTwoPower<32, 256>(GemmNPerBlock))
             break;
-        if(!NextTwoPower<64, 256>(GemmMPerBlock))
+        if(!NextTwoPower<32, 256>(GemmMPerBlock))
             break;
-        if(!NextTwoPower<32, 128>(GemmKBlocks))
+        if(!NextTwoPower<1, 128>(GemmKBlocks))
             break;
         return false;
     } while(false);
@@ -485,7 +485,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         else
         {
             data_per_thread_copy_gemmn = gcd(GemmKPerBlock, tmp);
-            data_per_thread_copy_gemmk = tmp / data_per_thread_copy_gemmk;
+            data_per_thread_copy_gemmk = tmp / data_per_thread_copy_gemmn;
         }
 
         // vector write into LDS
@@ -961,9 +961,9 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
             const auto& tensors      = invoke_params.tensors;
             auto kernel = handle.Run(kernels[0]);
             float elapsed = 0;
+            float zero            = 0.f;
             if(ctx.IsFp16() || ctx.IsBfp16()){
                 const auto& workSpace = invoke_params.workSpace;
-                float zero            = 0.f;
                 TensorDescriptor workspaceDesc(
                     miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
                 SetTensor(handle, workspaceDesc, workSpace, &zero);
@@ -984,6 +984,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
                            0);
             }
             else{
+                SetTensor(handle, tensors.dwDesc, tensors.dw, &zero);
                 handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);
             }
 

@@ -41,7 +41,7 @@ namespace solver {
 
 PerformanceImplicitGemmWrwV4R4Xdlops::PerformanceImplicitGemmWrwV4R4Xdlops()
     : PerformanceImplicitGemmWrwV4R4Xdlops::PerformanceImplicitGemmWrwV4R4Xdlops(
-          32, 32, 2, 16, 16, 4, false, false,4)
+          64, 64, 2, 32, 32, 4, false, false,4)
 {
 }
 
@@ -95,15 +95,15 @@ bool PerformanceImplicitGemmWrwV4R4Xdlops::SetNextValue()
             break;
         if(!NextTwoPower<4, 8>(GemmKPack))
             break;
-        if(!NextTwoPower<16, 128>(GemmNPerWave))
+        if(!NextTwoPower<32, 128>(GemmNPerWave))
             break;
-        if(!NextTwoPower<16, 128>(GemmMPerWave))
+        if(!NextTwoPower<32, 128>(GemmMPerWave))
             break;
         if(!NextTwoPower<2, 8>(GemmKPerBlock))
             break;
-        if(!NextTwoPower<32, 256>(GemmNPerBlock))
+        if(!NextTwoPower<64, 256>(GemmNPerBlock))
             break;
-        if(!NextTwoPower<32, 256>(GemmMPerBlock))
+        if(!NextTwoPower<64, 256>(GemmMPerBlock))
             break;
         if(!NextTwoPower<1, 128>(GemmKBlocks))
             break;

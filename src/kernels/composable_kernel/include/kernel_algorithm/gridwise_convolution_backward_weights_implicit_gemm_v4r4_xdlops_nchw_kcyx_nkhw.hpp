@@ -204,10 +204,10 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(
                 Merge<Sequence<G, GemmKBlocks>>{}, PassThrough<GemmM>{}, PassThrough<GemmN>{}),
             make_tuple(Sequence<1, 0>{}, Sequence<2>{}, Sequence<3>{}),
-            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
+            make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
 
-        constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];
-        constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];
+        constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];
+        constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];
         static_assert(c_gemmn == GemmN && c_gemmm == GemmM, "error C matrix");
 
         /*   if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
@@ -228,14 +228,22 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             ABFloat,
             AccFloat,
             CFloat,
-            decltype(out_gemmg_gemmk_gemmm_gemmkpack_global_desc),
             decltype(in_gemmg_gemmk_gemmn_gemmkpack_global_desc),
+            decltype(out_gemmg_gemmk_gemmm_gemmkpack_global_desc),
             decltype(wei_gemmg_gemmm_gemmn_global_desc),
-            GemmMPerBlock,
             GemmNPerBlock,
+            GemmMPerBlock,
             GemmKPerBlock,
-            GemmMPerWave,
             GemmNPerWave,
+            GemmMPerWave,
+	    GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPack,
+            GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPack,
+            GemmBBlockCopyThreadClusterArrangeOrder,
+            GemmBBlockCopySrcAccessOrder,
+            GemmBBlockCopyDstAccessOrder,
+            3, // Src vetor read diemsnion of B matrix is GemmKPack
+            GemmBBlockCopySrcDataPerRead_GemmKPack,
+            GemmBBlockCopyDstDataPerWrite_GemmKPack,
             GemmABlockCopyThreadSliceLengths_GemmG_GemmK_GemmM_GemmKPack,
             GemmABlockCopyThreadClusterLengths_GemmG_GemmK_GemmM_GemmKPack,
             GemmABlockCopyThreadClusterArrangeOrder,
@@ -244,18 +252,10 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             3, // src vector read dimension of A matrix is GemmKPack
             GemmABlockCopySrcDataPerRead_GemmKPack,
             GemmABlockCopyDstDataPerWrite_GemmKPack,
-            GemmBBlockCopyThreadSliceLengths_GemmG_GemmK_GemmN_GemmKPack,
-            GemmBBlockCopyThreadClusterLengths_GemmG_GemmK_GemmN_GemmKPack,
-            GemmBBlockCopyThreadClusterArrangeOrder,
-            GemmBBlockCopySrcAccessOrder,
-            GemmBBlockCopyDstAccessOrder,
-            3, // Src vetor read diemsnion of B matrix is GemmKPack
-            GemmBBlockCopySrcDataPerRead_GemmKPack,
-            GemmBBlockCopyDstDataPerWrite_GemmKPack,
             CGlobalMemoryDataOperation,
             WorkgroupSchdOrder>{};
 
-        gridwise_gemm.Run(p_out_global, p_in_global, p_wei_global);
+        gridwise_gemm.Run(p_in_global,p_out_global,  p_wei_global);
     }
 };
 

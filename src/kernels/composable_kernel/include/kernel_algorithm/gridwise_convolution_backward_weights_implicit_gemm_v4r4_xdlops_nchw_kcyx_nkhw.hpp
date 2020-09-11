@@ -5,7 +5,7 @@
 #include "tensor_descriptor.hpp"
 #include "tensor_descriptor_helper.hpp"
 #include "ConstantMatrixDescriptor.hpp"
-#include "gridwise_gemm_xdlops_fp16_bfp16.hpp"
+#include "gridwise_gemm_xdlops_fp16_bfp16_abexchange.hpp"
 
 namespace ck {
 
@@ -222,7 +222,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
             GemmG > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
         // gridwise batch-GEMM
-        constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<
+        constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2_abexchange<
             GridSize,
             BlockSize,
             ABFloat,

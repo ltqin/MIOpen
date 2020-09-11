@@ -65,6 +65,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::PerformanceImplicitGemmWrwV4R4Xdlops(
       GemmBThreadCopyMoreGemmKPack(GemmBThreadCopyMoreGemmKPack_),
       GemmKBlocks(GemmKBlocks_)
 {
+	//GemmKBlocks = 1;
 }
 
 bool PerformanceImplicitGemmWrwV4R4Xdlops::
@@ -163,6 +164,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
                 {
                     // list in reverse order of importance,
                     // and favor large GEMM
+		   // tmp.GemmKBlocks = 1;
                     if(!PreviousTwoPower<1, 128>(tmp.GemmKBlocks))
                         break;
                     if(!PreviousTwoPower<1, 8>(tmp.GemmKPerBlock))
@@ -955,14 +957,14 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
             {
                 const auto& workSpace = invoke_params.workSpace;
                 TensorDescriptor workspaceDesc(
-                    miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
-                SetTensor(handle, workspaceDesc, workSpace, &zero);
+                    miopenHalf, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
+                SetTensor(handle, workspaceDesc, tensors.dw, &zero);
                 if(handle.IsProfilingEnabled())
                 {
                     elapsed += handle.GetKernelTime();
                 }
-                kernel(tensors.x, tensors.dy, workSpace);
-                if(handle.IsProfilingEnabled())
+                kernel(tensors.x, tensors.dy, tensors.dw);
+                /*if(handle.IsProfilingEnabled())
                 {
                     elapsed += handle.GetKernelTime();
                 }
@@ -973,7 +975,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
                            tensors.dwDesc,
                            tensors.dw,
                            0,
-                           0);
+                           0);*/
             }
             else
             {

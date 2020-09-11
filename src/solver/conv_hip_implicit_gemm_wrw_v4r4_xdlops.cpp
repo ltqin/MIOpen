@@ -955,7 +955,7 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
             float zero               = 0.f;
             if(ctx.IsFp16() || ctx.IsBfp16())
             {
-                const auto& workSpace = invoke_params.workSpace;
+//                const auto& workSpace = invoke_params.workSpace;
                 TensorDescriptor workspaceDesc(
                     miopenHalf, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
                 SetTensor(handle, workspaceDesc, tensors.dw, &zero);
@@ -1052,17 +1052,17 @@ PerformanceImplicitGemmWrwV4R4Xdlops
 ConvHipImplicitGemmWrwV4R4Xdlops::Search(const ConvolutionContext& ctx) const
 {
     // fp16/bfp16 uses fp32 workspace to leverage fp32 atomic add
-    if(ctx.IsFp16() || ctx.IsBfp16())
-        return GenericSearchWrW(*this, ctx, SearchTweak::WorkspaceInsteadOfWeightsBuffer);
-    else
+   // if(ctx.IsFp16() || ctx.IsBfp16())
+   //     return GenericSearchWrW(*this, ctx, SearchTweak::WorkspaceInsteadOfWeightsBuffer);
+   // else
         return GenericSearchWrW(*this, ctx);
 }
 
 std::size_t ConvHipImplicitGemmWrwV4R4Xdlops::GetWorkspaceSize(const ConvolutionContext& ctx) const
 {
-    if(ctx.IsFp32())
+    //if(ctx.IsFp32())
         return 0;
-    else
+ /*   else
     {
         const auto k = ConvolutionContextInterpreter::GetOutputChannelK(ctx);
         const auto c = ConvolutionContextInterpreter::GetInputChannelC(ctx);
@@ -1070,7 +1070,7 @@ std::size_t ConvHipImplicitGemmWrwV4R4Xdlops::GetWorkspaceSize(const Convolution
         const auto x = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
 
         return k * c * y * x * miopen::GetTypeSize(miopenFloat);
-    }
+    }*/
 }
 } // namespace solver
 } // namespace miopen

@@ -63,8 +63,8 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr index_t Ho = out_n_k_ho_wo_global_desc.GetLengths()[2];
         constexpr index_t Wo = out_n_k_ho_wo_global_desc.GetLengths()[3];
 
-        constexpr index_t Y = wei_k_cpergroup_y_x_global_desc.GetLengths()[2];
-        constexpr index_t X = wei_k_cpergroup_y_x_global_desc.GetLengths()[3];
+        constexpr index_t Y         = wei_k_cpergroup_y_x_global_desc.GetLengths()[2];
+        constexpr index_t X         = wei_k_cpergroup_y_x_global_desc.GetLengths()[3];
         constexpr index_t CPerGroup = C / G;
         constexpr index_t KPerGroup = K / G;
 
@@ -210,17 +210,8 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
         constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];
         static_assert(c_gemmn == GemmN && c_gemmm == GemmM, "error C matrix");
 
-        /*   if(get_thread_local_1d_id() == 0 && get_block_1d_id() == 0)
-           {
-               printf("\nGridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw\nA
-           matrix:gemmk = %d  gemmm = %d gemmkpack = %d \nB matrix: gemmk = %d  gemmn = %d gemmkpack
-           = %d \nC matrix: gemmm = %d  gemmn = %d \n  ###################",
-                        a_gemmk, a_gemmm,a_gemmkpack, b_gemmk, b_gemmn, b_gemmkpack, c_gemmm,
-           c_gemmn);
-           }*/
-
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
-            GemmG > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
+            GemmKBlocks > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
         // gridwise batch-GEMM
         constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2_abexchange<
             GridSize,

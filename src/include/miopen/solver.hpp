@@ -1861,9 +1861,8 @@ struct PerformanceImplicitGemmWrwV4R4Xdlops : Serializable<PerformanceImplicitGe
     int GemmKPack;
     bool GemmAThreadCopyMoreGemmK;
     bool GemmBThreadCopyMoreGemmKPack;
-    int GemmKBlocks;
 
-    PerformanceImplicitGemmWrwV4R4Xdlops(int, int, int, int, int, int, bool, bool, int);
+    PerformanceImplicitGemmWrwV4R4Xdlops(int, int, int, int, int, int, bool, bool);
     PerformanceImplicitGemmWrwV4R4Xdlops();
     PerformanceImplicitGemmWrwV4R4Xdlops(bool) : PerformanceImplicitGemmWrwV4R4Xdlops() {}
 
@@ -1878,7 +1877,6 @@ struct PerformanceImplicitGemmWrwV4R4Xdlops : Serializable<PerformanceImplicitGe
         f(self.GemmKPack, "GemmKPack");
         f(self.GemmAThreadCopyMoreGemmK, "GemmAThreadCopyMoreGemmK");
         f(self.GemmBThreadCopyMoreGemmKPack, "GemmBThreadCopyMoreGemmKPack");
-        f(self.GemmKBlocks, "GemmKBlocks");
     }
 
     bool operator==(const PerformanceImplicitGemmWrwV4R4Xdlops& other) const;
@@ -1890,6 +1888,7 @@ struct PerformanceImplicitGemmWrwV4R4Xdlops : Serializable<PerformanceImplicitGe
     bool IsValid(const ConvolutionContext& ctx) const;
     bool IsReallyValid(const ConvolutionContext& ctx) const;
     bool IsFastToBeUsedForTuning(const ConvolutionContext& ctx) const;
+    int CalculateGemmKBlocks(const ConvolutionContext& ctx) const;
 
     std::tuple<int, bool> CalculateBlockSize() const;
     std::tuple<int, bool> CalculateGridSize(const ConvolutionContext& ctx) const;

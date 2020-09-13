@@ -856,6 +856,20 @@ __device__ void amd_buffer_atomic_add<half_t, 2>(const half_t* p_src,
 #endif
 }
 
+template <>
+__device__ void amd_buffer_atomic_add<half_t, 4>(const half_t* p_src,
+                                                 half_t* p_dst_block,
+                                                 index_t dst_thread_data_offset,
+                                                 index_t dst_const_data_offset)
+{
+    for(index_t i = 0; i < 4; i += 2)
+    {
+        amd_buffer_atomic_add<half_t, 2>(
+            &p_src[i], p_dst_block, dst_thread_data_offset, dst_const_data_offset + i);
+    }
+
+}
+
 #endif // CK_USE_AMD_BUFFER_ATOMIC_ADD
 
 } // namespace ck

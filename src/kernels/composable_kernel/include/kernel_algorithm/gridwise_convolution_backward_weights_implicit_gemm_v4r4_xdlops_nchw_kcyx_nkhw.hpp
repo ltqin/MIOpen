@@ -45,7 +45,7 @@ template <index_t GridSize,
           index_t GemmBBlockCopyDstDataPerWrite_GemmKPack,
           WorkgroupScheduleOrder WorkgroupSchdOrder,
           index_t GemmKBlocks>
-struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
+struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
 {
     __device__ void Run(const ABFloat* const __restrict__ p_in_global,
                         const ABFloat* const __restrict__ p_out_global,
@@ -83,6 +83,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
         constexpr index_t C0         = CPerGroup / NWaves;
         constexpr index_t GemmG      = G * GemmKBlocks;
         constexpr index_t GemmM      = KPerGroup;
+        constexpr index_t GemmN      = CPerGroup * Y * X;
         constexpr index_t B          = C0 * Y * X;
         constexpr index_t GemmKTotal = NSub * Ho * Wo;
 
@@ -91,7 +92,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
 
         constexpr index_t GemmK = GemmKTotal / GemmKPack;
 
-        static_assert(GemmM % GemmMPerBlock == 0 && GemmN % GemmNPerBlock == 0 &&
+        static_assert(GemmM % GemmMPerBlock == 0 && B % BPerBlock == 0 &&
                           GemmK % GemmKPerBlock == 0,
                       "wrong! cannot divide work evenly among block");
 
@@ -137,11 +138,6 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
             make_tuple(Sequence<0>{}, Sequence<1, 3>{}, Sequence<2>{}));
 
-        constexpr auto a_gemmk     = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[1];
-        constexpr auto a_gemmm     = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[2];
-        constexpr auto a_gemmkpack = out_gemmg_gemmk_gemmm_gemmkpack_global_desc.GetLengths()[3];
-        static_assert(a_gemmk == GemmK && a_gemmm == GemmM && a_gemmkpack == GemmKPack,
-                      "error A matrix");
         // input tensor matrix B
         constexpr auto in_g_gemmkblocks_nsub_nwaves_c0_hi_wi_global_desc =
             transform_tensor_descriptor(
@@ -171,8 +167,8 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
             make_tuple(
                 Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3>{}, Sequence<4, 5>{}));
 
-        constexpr index_t Hip = in_gemmg_nsub_cpergroup_hip_wip_global_desc.GetLengths()[3];
-        constexpr index_t Wip = in_gemmg_nsub_cpergroup_hip_wip_global_desc.GetLengths()[4];
+        constexpr index_t Hip = in_gemmg_nsub_nwaves_c0_hip_wip_global_desc.GetLengths()[4];
+        constexpr index_t Wip = in_gemmg_nsub_nwaves_c0_hip_wip_global_desc.GetLengths()[5];
 
         constexpr auto in_gemmg_nsub_nwaves_c0_y_ho_x_wo_global_desc = transform_tensor_descriptor(
             in_gemmg_nsub_nwaves_c0_hip_wip_global_desc,
@@ -222,10 +218,6 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
             make_tuple(Sequence<1, 0>{}, Sequence<2>{}, Sequence<3>{}),
             make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}));
 
-        constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];
-        constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];
-        static_assert(c_gemmn == GemmN && c_gemmm == GemmM, "error C matrix");
-
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
             GemmKBlocks > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
         // gridwise batch-GEMM
@@ -239,10 +231,10 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
             decltype(in_gemmg_gemmk_nwaves_B_gemmkpack_global_desc),
             decltype(wei_gemmg_gemmm_gemmn_global_desc),
             GemmMPerBlock,
-            GemmNPerBlock,
+            BPerBlock,
             GemmKPerBlock,
             GemmMPerWave,
-            GemmNPerWave,
+            BPerWave,
             GemmABlockCopyThreadSliceLengths_GemmG_GemmK_GemmM_GemmKPack,
             GemmABlockCopyThreadClusterLengths_GemmG_GemmK_GemmM_GemmKPack,
             GemmABlockCopyThreadClusterArrangeOrder,
@@ -256,7 +248,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r5_xdlops_nchw_kcyx_nkhw
             GemmBBlockCopyThreadClusterArrangeOrder,
             GemmBBlockCopySrcAccessOrder,
             GemmBBlockCopyDstAccessOrder,
-            3, // Src vetor read diemsnion of B matrix is GemmKPack
+            4, // Src vetor read diemsnion of B matrix is GemmKPack
             GemmBBlockCopySrcDataPerRead_GemmKPack,
             GemmBBlockCopyDstDataPerWrite_GemmKPack,
             CGlobalMemoryDataOperation,

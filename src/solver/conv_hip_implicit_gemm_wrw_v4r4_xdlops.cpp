@@ -500,7 +500,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         data_per_thread_copy = lcm(data_per_thread_copy, SrcDataPerRead_GemmKPack);
 
         const auto data_per_thread_copy_gemmkpack = SrcDataPerRead_GemmKPack;
-        const auto tmp = data_per_thread_copy / data_per_thread_copy_gemmkpack;
+        const auto tmp = data_per_thread_copy / (data_per_thread_copy_gemmkpack * NWaves);
 
         int data_per_thread_copy_b     = -1;
         int data_per_thread_copy_gemmk = -1;
@@ -512,7 +512,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         }
         else
         {
-            data_per_thread_copy_b     = gcd(GemmKPerBlock, tmp);
+            data_per_thread_copy_b     = gcd(BPerBlock, tmp);
             data_per_thread_copy_gemmk = tmp / data_per_thread_copy_b;
         }
 

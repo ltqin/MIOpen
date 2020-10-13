@@ -182,7 +182,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                        Sequence<1>{},
                        Sequence<2>{},
                        Sequence<3>{},
-                       Sequence<5>{},
+                       Sequence<4>{},
                        Sequence<5>{}),
             make_tuple(Sequence<0>{},
                        Sequence<1>{},
@@ -206,7 +206,7 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
                        UnMerge<Sequence<GemmK, GemmKPack>>{},
                        PassThrough<NWaves>{},
                        PassThrough<B>{}),
-            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}),
+            make_tuple(Sequence<0>{}, Sequence<1>{}, Sequence<2>{}, Sequence<3>{}),
             make_tuple(Sequence<0>{}, Sequence<1, 4>{}, Sequence<2>{}, Sequence<3>{}));
 
         // weight tensor  C matrix

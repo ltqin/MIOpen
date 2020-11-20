@@ -967,40 +967,15 @@ ConvSolution ConvHipImplicitGemmWrwV4R4Xdlops::GetSolution(
             auto kernel               = handle.Run(kernels[0]);
             float elapsed             = 0;
             float zero                = 0.f;
-            if(ctx.IsFp16() || ctx.IsBfp16())
+            //set zero to tensor for atomic add
+            SetTensor(handle, tensors.dwDesc, tensors.dw, &zero);
+            if(handle.IsProfilingEnabled())
             {
-                const auto& workSpace = invoke_params.workSpace;
-                TensorDescriptor workspaceDesc(
-                    miopenFloat, tensors.dwDesc.GetLengths(), tensors.dwDesc.GetStrides());
-                SetTensor(handle, workspaceDesc, workSpace, &zero);
-                if(handle.IsProfilingEnabled())
-                {
-                    elapsed += handle.GetKernelTime();
-                }
-                kernel(tensors.x, tensors.dy, workSpace);
-                if(handle.IsProfilingEnabled())
-                {
-                    elapsed += handle.GetKernelTime();
-                }
-                CastTensor(handle,
-                           &lowp_quant,
-                           workspaceDesc,
-                           workSpace,
-                           tensors.dwDesc,
-                           tensors.dw,
-                           0,
-                           0);
+                elapsed += handle.GetKernelTime();
             }
-            else
-            {
-                SetTensor(handle, tensors.dwDesc, tensors.dw, &zero);
-                if(handle.IsProfilingEnabled())
-                {
-                    elapsed += handle.GetKernelTime();
-                }
-                handle.Run(kernels[0])(tensors.x, tensors.dy, tensors.dw);
-            }
-
+            //call kernel
+            kernel(tensors.x, tensors.dy, tensors.dw);
+           
             if(handle.IsProfilingEnabled())
             {
                 elapsed += handle.GetKernelTime();
@@ -1065,17 +1040,7 @@ ConvHipImplicitGemmWrwV4R4Xdlops::Search(const ConvolutionContext& ctx,
 
 std::size_t ConvHipImplicitGemmWrwV4R4Xdlops::GetWorkspaceSize(const ConvolutionContext& ctx) const
 {
-    if(ctx.IsFp32())
-        return 0;
-    else
-    {
-        const auto k = ConvolutionContextInterpreter::GetOutputChannelK(ctx);
-        const auto c = ConvolutionContextInterpreter::GetInputChannelC(ctx);
-        const auto y = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
-        const auto x = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
-
-        return k * c * y * x * miopen::GetTypeSize(miopenFloat);
-    }
+    return 0;
 }
 } // namespace solver
 } // namespace miopen

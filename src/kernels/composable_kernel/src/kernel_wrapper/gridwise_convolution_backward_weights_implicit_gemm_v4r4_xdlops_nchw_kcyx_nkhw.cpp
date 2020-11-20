@@ -6,7 +6,7 @@ extern "C" __global__
     __launch_bounds__(CK_PARAM_DEPENDENT_BLOCK_SIZE) void gridwise_convolution_backward_weights_implicit_gemm_v4r4_xdlops_nchw_kcyx_nkhw(
         const FLOAT* const __restrict__ p_in_global,
         const FLOAT* const __restrict__ p_out_global,
-        FLOAT_ACCUM* const __restrict__ p_wei_global)
+        FLOAT* const __restrict__ p_wei_global)
 {
     using namespace ck;
 
@@ -145,7 +145,7 @@ extern "C" __global__
             BlockSize,
             FLOAT,       // Input data type
             FLOAT_ACCUM, // Acc data type
-            FLOAT_ACCUM, // Ouput data type
+            FLOAT, // Ouput data type
             decltype(in_n_c_hi_wi_desc),
             decltype(wei_k_cpergroup_y_x_desc),
             decltype(out_n_k_ho_wo_desc),

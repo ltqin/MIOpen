@@ -176,6 +176,18 @@ __device__ void amd_buffer_atomic_add(const T* p_src,
                                       T* p_dst_block,
                                       index_t dst_thread_data_offset,
                                       index_t dst_const_data_offset);
+
+__device__ void __llvm_amdgcn_buffer_atomic_add_f16x2(half2_t vdata,
+                                                      int32x4_t rsrc,
+                                                      index_t vindex,
+                                                      index_t offset,
+                                                      bool slc) __asm("llvm.amdgcn.buffer.atomic.fadd.v2f16");
+
+__device__ void __llvm_amdgcn_raw_buffer_atomic_add_f16x2(half2_t vdata,
+                                                      int32x4_t rsrc,
+                                                      index_t voffset,
+                                                      index_t soffset,
+                                                      int zero) __asm("llvm.amdgcn.raw.buffer.atomic.fadd.v2f16");
 #endif
 
 template <>
@@ -790,6 +802,78 @@ __device__ void amd_buffer_atomic_add<float, 4>(const float* p_src,
         amd_buffer_atomic_add<float, 1>(
             &p_src[i], p_dst_block, dst_thread_data_offset, dst_const_data_offset + i);
     }
+}
+
+template <>
+__device__ void amd_buffer_atomic_add<half_t, 1>(const half_t* p_src,
+                                                 half_t* p_dst_block,
+                                                 index_t dst_thread_data_offset,
+                                                 index_t dst_const_data_offset)
+{
+    BufferAddressConfig<half_t> dst_block_config;
+
+    // fill in byte 0 - 1
+    dst_block_config.address[0] = p_dst_block;
+    // fill in byte 2
+    dst_block_config.range[2] = -1;
+    // fill in byte 3
+    dst_block_config.range[3] = 0x00027000;
+
+    index_t dst_thread_addr_offset = dst_thread_data_offset * sizeof(half_t);
+    index_t dst_const_addr_offset  = dst_const_data_offset * sizeof(half_t);
+
+    __llvm_amdgcn_buffer_atomic_add_f16x2(*reinterpret_cast<const half2_t*>(p_src),
+                                     dst_block_config.data,
+                                     0,
+                                     dst_thread_addr_offset + dst_const_addr_offset,
+				     false);
+}
+
+template <>
+__device__ void amd_buffer_atomic_add<half_t, 2>(const half_t* p_src,
+                                                 half_t* p_dst_block,
+                                                 index_t dst_thread_data_offset,
+                                                 index_t dst_const_data_offset)
+{
+    BufferAddressConfig<half_t> dst_block_config;
+
+    // fill in byte 0 - 1
+    dst_block_config.address[0] = p_dst_block;
+    // fill in byte 2
+    dst_block_config.range[2] = -1;
+    // fill in byte 3
+    dst_block_config.range[3] = 0x00027000;
+
+    index_t dst_thread_addr_offset = dst_thread_data_offset * sizeof(half_t);
+    index_t dst_const_addr_offset  = dst_const_data_offset * sizeof(half_t);
+#if 1
+    __llvm_amdgcn_buffer_atomic_add_f16x2(*reinterpret_cast<const half2_t*>(p_src),
+                                     dst_block_config.data,
+                                     0,
+                                     dst_thread_addr_offset + dst_const_addr_offset,
+				     false);
+#else
+   __llvm_amdgcn_raw_buffer_atomic_add_f16x2(*reinterpret_cast<const half2_t*>(p_src),
+                                     dst_block_config.data,
+                                     0,
+                                     dst_thread_addr_offset + dst_const_addr_offset,
+				     0);
+
+#endif
+}
+
+template <>
+__device__ void amd_buffer_atomic_add<half_t, 4>(const half_t* p_src,
+                                                 half_t* p_dst_block,
+                                                 index_t dst_thread_data_offset,
+                                                 index_t dst_const_data_offset)
+{
+    for(index_t i = 0; i < 4; i += 2)
+    {
+        amd_buffer_atomic_add<half_t, 2>(
+            &p_src[i], p_dst_block, dst_thread_data_offset, dst_const_data_offset + i);
+    }
+
 }
 #endif // CK_USE_AMD_BUFFER_ATOMIC_FADD
 

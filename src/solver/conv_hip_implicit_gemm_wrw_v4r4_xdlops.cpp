@@ -508,7 +508,7 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmBBlockCopyPerformanceParamete
         }
         else
         {
-            data_per_thread_copy_gemmn = gcd(GemmKPerBlock, tmp);
+            data_per_thread_copy_gemmn = gcd(GemmNPerBlock, tmp);
             data_per_thread_copy_gemmk = tmp / data_per_thread_copy_gemmn;
         }
 

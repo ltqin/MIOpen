@@ -141,19 +141,19 @@ __device__ void transfer_data(const T* p_src, index_t src_offset, T* p_dst, inde
                   "wrong! InMemoryDataOperation not supported!");
 
     // keep it simple, don't use static_if here, otherwise compiler will do weird things
-    if(SrcDataStride == 1 && DstDataStride == 1)
+/*    if(SrcDataStride == 1 && DstDataStride == 1)
     {
         // TODO: use static_if::ElseIf
         static_if<DstInMemOp == InMemoryDataOperation::Set>{}([&](auto) {
             SetData<T, DataPerAccess>{}.template Run<SrcAddressSpace, DstAddressSpace>(
                 p_src, src_offset, p_dst, dst_offset);
         });
-
+*/
         static_if<DstInMemOp == InMemoryDataOperation::AtomicAdd>{}([&](auto) {
             AtomicAddData<T, DataPerAccess>{}.template Run<SrcAddressSpace, DstAddressSpace>(
                 p_src, src_offset, p_dst, dst_offset);
         });
-    }
+/*    }
     else
     {
         for(index_t i = 0; i < DataPerAccess; i++)
@@ -169,7 +169,7 @@ __device__ void transfer_data(const T* p_src, index_t src_offset, T* p_dst, inde
                     p_src, src_offset + i * SrcDataStride, p_dst, dst_offset + i * DstDataStride);
             });
         }
-    }
+    }*/
 }
 
 } // namespace ck

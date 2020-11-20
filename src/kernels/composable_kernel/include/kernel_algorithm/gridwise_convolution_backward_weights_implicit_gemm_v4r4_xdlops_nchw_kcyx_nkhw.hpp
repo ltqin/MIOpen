@@ -205,14 +205,14 @@ struct GridwiseConvolutionBackwardWeightsImplicitGemm_v4r4_xdlops_nchw_kcyx_nkhw
             make_tuple(Sequence<1, 0>{}, Sequence<2>{}, Sequence<3>{}),
             make_tuple(Sequence<0>{}, Sequence<2>{}, Sequence<1>{}));
 
-        constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];
-        constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];
+        constexpr auto c_gemmm = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[2];
+        constexpr auto c_gemmn = wei_gemmg_gemmm_gemmn_global_desc.GetLengths()[1];
         static_assert(c_gemmn == GemmN && c_gemmm == GemmM, "error C matrix");
 
         constexpr InMemoryDataOperation CGlobalMemoryDataOperation =
             GemmKBlock > 1 ? InMemoryDataOperation::AtomicAdd : InMemoryDataOperation::Set;
         // gridwise batch-GEMM
-        constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2<
+        constexpr auto gridwise_gemm = GridwiseBatchGemmXdlops_gkmkpack_gknkpack_gmn_v2_abexchange<
             GridSize,
             BlockSize,
             ABFloat,

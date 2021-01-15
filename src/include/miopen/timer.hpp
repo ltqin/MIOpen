@@ -90,7 +90,7 @@ class RunTimer
     ~RunTimer()
     {
 #if MIOPEN_BUILD_DEV
-        MIOPEN_LOG_I(
+        MIOPEN_LOG_W(
             info << " Run Time, ms: " << timer.elapsed_ms() << " thread id is: " << std::this_thread::get_id());
 #endif
     }

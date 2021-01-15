@@ -65,10 +65,33 @@ class CompileTimer
     {
 #if MIOPEN_BUILD_DEV
         MIOPEN_LOG_I2(
-            s1 << (s2.empty() ? "" : " ") << s2 << " Compile Time, ms: " << timer.elapsed_ms());
+            s1 << (s2.empty() ? "" : " ") << s2 << " Compile Time, ms: " << timer.elapsed_ms()<< " thread id is: " << std::this_thread::get_id());
 #else
         (void)s1;
         (void)s2;
+#endif
+    }
+};
+
+class RunTimer
+{
+#if MIOPEN_BUILD_DEV
+    Timer timer;
+    std::string  info;
+#endif
+    public:
+    RunTimer(const std::string& _info)
+    {
+#if MIOPEN_BUILD_DEV
+        timer.start();
+        info = _info;
+#endif
+    }
+    ~RunTimer()
+    {
+#if MIOPEN_BUILD_DEV
+        MIOPEN_LOG_I(
+            info << " Run Time, ms: " << timer.elapsed_ms() << " thread id is: " << std::this_thread::get_id());
 #endif
     }
 };

@@ -1941,6 +1941,8 @@ struct PerformanceImplicitGemmWrwV4R4Xdlops : Serializable<PerformanceImplicitGe
 
     std::tuple<int, int, int, int, int, bool>
     CalculateGemmSizeAndGemmKBlock(const ConvolutionContext& ctx) const;
+    std::tuple<int, int, int, int, bool>
+    CalculateGemmSize(const ConvolutionContext& ctx) const;
     std::tuple<int, bool> CalculateBlockSize() const;
     std::tuple<int, bool> CalculateGridSize(const ConvolutionContext& ctx) const;
     std::tuple<int, int, int, int, int, bool>

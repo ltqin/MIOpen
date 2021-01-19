@@ -309,6 +309,42 @@ PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGridSize(const ConvolutionContext
     return std::make_tuple(GridSize, true);
 }
 
+std::tuple<int, int, int, int, bool>
+PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmSize(
+    const ConvolutionContext& ctx) const
+{
+    int gemm_g       = -1;
+    int gemm_m       = -1;
+    int gemm_n       = -1;
+    int gemm_k_total = -1;
+
+    try
+    {
+        const auto g  = ConvolutionContextInterpreter::GetGroupCountG(ctx);
+        const auto n  = ConvolutionContextInterpreter::GetBatchN(ctx);
+        const auto k  = ConvolutionContextInterpreter::GetOutputChannelK(ctx);
+        const auto c  = ConvolutionContextInterpreter::GetInputChannelC(ctx);
+        const auto ho = ConvolutionContextInterpreter::GetOutputHeightHo(ctx);
+        const auto wo = ConvolutionContextInterpreter::GetOutputWidthWo(ctx);
+        const auto y  = ConvolutionContextInterpreter::GetFilterHeightY(ctx);
+        const auto x  = ConvolutionContextInterpreter::GetFilterWidthX(ctx);
+
+        const auto k_per_group = k / g;
+        const auto c_per_group = c / g;
+
+        gemm_m = k_per_group;
+        gemm_n = c_per_group * y * x;
+        gemm_k_total = n * ho * wo;
+        gemm_g       = g;
+    }
+    catch(...)
+    {
+        return std::make_tuple(-1, -1, -1, -1, false);
+    }
+
+    return std::make_tuple(gemm_g, gemm_m, gemm_n, gemm_k_total, true);
+}
+
 std::tuple<int, int, int, int, int, bool>
 PerformanceImplicitGemmWrwV4R4Xdlops::CalculateGemmSizeAndGemmKBlock(
     const ConvolutionContext& ctx) const
@@ -1066,10 +1102,13 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
     int gemm_n       = -1;
     int gemm_k_total = -1;
 
-    std::tie(std::ignore, gemm_m, gemm_n, gemm_k_total, std::ignore, std::ignore) =
-        config.CalculateGemmSizeAndGemmKBlock(ctx);
+    std::tie(std::ignore, gemm_m, gemm_n, gemm_k_total, std::ignore) =
+        config.CalculateGemmSize(ctx);
 
-    return IsValidGridGemmXdlops(ctx,gemm_m, gemm_n, gemm_k_total);
+    bool bIsValid = IsValidGridGemmXdlops(ctx,gemm_m, gemm_n, gemm_k_total);
+    MIOPEN_LOG_W(
+            " IsApplicable: " << bIsValid << " gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gemm_k: " << gemm_k_total);
+    return bIsValid;
 }
 
 PerformanceImplicitGemmWrwV4R4Xdlops

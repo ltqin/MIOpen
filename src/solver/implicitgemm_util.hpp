@@ -586,6 +586,45 @@ static inline bool IsValidBlockwiseGemmXdlops(const ConvolutionContext& ctx,
 }
 
 static inline bool
+IsValidGridGemmXdlops(const ConvolutionContext& ctx, const std::size_t GemmM, const std::size_t GemmN, const std::size_t GemmK)
+{
+     // check k
+    if(ctx.IsFp16() && GemmK % 4 != 0)
+        return false;
+    if(ctx.IsBfp16() && GemmK % 2 != 0)
+        return false;
+
+   // check M, N and K
+    std::vector<std::tuple<int, int, int>> validWaveGemmSize = {// std::make_tuple(128, 128, 1),
+                                                                std::make_tuple(128, 64, 1),
+                                                                // std::make_tuple(128, 32, 1),
+                                                                // std::make_tuple(128, 16, 1),
+                                                                std::make_tuple(64, 128, 1),
+                                                                std::make_tuple(64, 64, 1),
+                                                                std::make_tuple(64, 32, 1),
+                                                                std::make_tuple(64, 16, 1),
+                                                                // std::make_tuple(32, 128, 1),
+                                                                std::make_tuple(32, 64, 1),
+                                                                std::make_tuple(32, 32, 2),
+                                                                // std::make_tuple(16, 128, 1),
+                                                                std::make_tuple(16, 64, 1),
+                                                                std::make_tuple(16, 16, 4),
+                                                                // std::make_tuple(8, 128, 1),
+                                                                std::make_tuple(8, 64, 1),
+                                                                // std::make_tuple(4, 128, 1),
+                                                                std::make_tuple(4, 64, 1)};
+    return std::any_of(validWaveGemmSize.cbegin(),
+                    validWaveGemmSize.cend(),
+                    [ GemmM, GemmN, GemmK ](const auto it) noexcept->bool {
+                        int validMPerWave, validNPerWave, validKPerWave;
+                        std::tie(validMPerWave, validNPerWave, validKPerWave) = it;
+                        return (GemmM % validMPerWave == 0) && (GemmN % validNPerWave == 0) &&
+                               (GemmK % validKPerWave == 0);
+                    });
+}
+
+
+static inline bool
 IsValidGridGemmXdlops(const std::size_t GemmM, const std::size_t GemmN, const std::size_t GemmK)
 {
     // unsupported xdlops-gemm

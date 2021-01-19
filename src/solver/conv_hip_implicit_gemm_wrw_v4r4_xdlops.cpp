@@ -1060,14 +1060,7 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
     if(!IsIndexRangeLargeEnough(ctx))
         return false;
 
-    // this particular EuristicInit is so comprehensive, that if it cannot predict a valid
-    // performance config, the problem is probably not applicable
     PerformanceImplicitGemmWrwV4R4Xdlops config;
-    config.EuristicInit(ctx);
-
-    if(!config.IsReallyValid(ctx))
-        return false;
-
     // gemm size
     int gemm_m       = -1;
     int gemm_n       = -1;
@@ -1076,7 +1069,7 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
     std::tie(std::ignore, gemm_m, gemm_n, gemm_k_total, std::ignore, std::ignore) =
         config.CalculateGemmSizeAndGemmKBlock(ctx);
 
-    return IsValidGridGemmXdlops(gemm_m, gemm_n, gemm_k_total);
+    return IsValidGridGemmXdlops(ctx,gemm_m, gemm_n, gemm_k_total);
 }
 
 PerformanceImplicitGemmWrwV4R4Xdlops

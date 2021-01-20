@@ -526,6 +526,28 @@ static inline bool IsIndexRangeLargeEnough(const ConvolutionContext& ctx)
            ctx.top_sz < max_index_range;
 }
 
+static const std::vector<std::tuple<int, int, int>>&  GetValidWaveGemmSize(){
+      // check M, N and K
+    const static std::vector<std::tuple<int, int, int>> validWaveGemmSize = {// std::make_tuple(128, 128, 1),
+                                                                std::make_tuple(128, 64, 1),
+                                                                // std::make_tuple(128, 32, 1),
+                                                                // std::make_tuple(128, 16, 1),
+                                                                std::make_tuple(64, 128, 1),
+                                                                std::make_tuple(64, 64, 1),
+                                                                std::make_tuple(64, 32, 1),
+                                                                std::make_tuple(64, 16, 1),
+                                                                // std::make_tuple(32, 128, 1),
+                                                                std::make_tuple(32, 64, 1),
+                                                                std::make_tuple(32, 32, 2),
+                                                                // std::make_tuple(16, 128, 1),
+                                                                std::make_tuple(16, 64, 1),
+                                                                std::make_tuple(16, 16, 4),
+                                                                // std::make_tuple(8, 128, 1),
+                                                                std::make_tuple(8, 64, 1),
+                                                                // std::make_tuple(4, 128, 1),
+                                                                std::make_tuple(4, 64, 1)};
+    return validWaveGemmSize;
+}
 static inline bool IsValidBlockwiseGemmXdlops(const ConvolutionContext& ctx,
                                               const int GemmMPerBlock,
                                               const int GemmNPerBlock,
@@ -546,24 +568,7 @@ static inline bool IsValidBlockwiseGemmXdlops(const ConvolutionContext& ctx,
         return false;
 
     // check M, N and K
-    std::vector<std::tuple<int, int, int>> validWaveGemmSize = {// std::make_tuple(128, 128, 1),
-                                                                std::make_tuple(128, 64, 1),
-                                                                // std::make_tuple(128, 32, 1),
-                                                                // std::make_tuple(128, 16, 1),
-                                                                std::make_tuple(64, 128, 1),
-                                                                std::make_tuple(64, 64, 1),
-                                                                std::make_tuple(64, 32, 1),
-                                                                std::make_tuple(64, 16, 1),
-                                                                // std::make_tuple(32, 128, 1),
-                                                                std::make_tuple(32, 64, 1),
-                                                                std::make_tuple(32, 32, 2),
-                                                                // std::make_tuple(16, 128, 1),
-                                                                std::make_tuple(16, 64, 1),
-                                                                std::make_tuple(16, 16, 4),
-                                                                // std::make_tuple(8, 128, 1),
-                                                                std::make_tuple(8, 64, 1),
-                                                                // std::make_tuple(4, 128, 1),
-                                                                std::make_tuple(4, 64, 1)};
+    static const std::vector<std::tuple<int, int, int>>& validWaveGemmSize = GetValidWaveGemmSize();
 
     if(!std::any_of(validWaveGemmSize.cbegin(),
                     validWaveGemmSize.cend(),
@@ -600,25 +605,9 @@ IsValidGridGemmXdlops(const ConvolutionContext& ctx, const std::size_t GemmM, co
     if(ctx.IsBfp16())
         GemmKPerBlock = GemmK / 2;
 
-   // check M, N and K
-    std::vector<std::tuple<int, int, int>> validWaveGemmSize = {// std::make_tuple(128, 128, 1),
-                                                                std::make_tuple(128, 64, 1),
-                                                                // std::make_tuple(128, 32, 1),
-                                                                // std::make_tuple(128, 16, 1),
-                                                                std::make_tuple(64, 128, 1),
-                                                                std::make_tuple(64, 64, 1),
-                                                                std::make_tuple(64, 32, 1),
-                                                                std::make_tuple(64, 16, 1),
-                                                                // std::make_tuple(32, 128, 1),
-                                                                std::make_tuple(32, 64, 1),
-                                                                std::make_tuple(32, 32, 2),
-                                                                // std::make_tuple(16, 128, 1),
-                                                                std::make_tuple(16, 64, 1),
-                                                                std::make_tuple(16, 16, 4),
-                                                                // std::make_tuple(8, 128, 1),
-                                                                std::make_tuple(8, 64, 1),
-                                                                // std::make_tuple(4, 128, 1),
-                                                                std::make_tuple(4, 64, 1)};
+    // check M, N and K
+    static const std::vector<std::tuple<int, int, int>>& validWaveGemmSize = GetValidWaveGemmSize();
+    
     return std::any_of(validWaveGemmSize.cbegin(),
                     validWaveGemmSize.cend(),
                     [ GemmM, GemmN, GemmKPerBlock ](const auto it) noexcept->bool {

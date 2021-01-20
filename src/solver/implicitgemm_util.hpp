@@ -594,6 +594,12 @@ IsValidGridGemmXdlops(const ConvolutionContext& ctx, const std::size_t GemmM, co
     if(ctx.IsBfp16() && GemmK % 2 != 0)
         return false;
 
+    std::size_t GemmKPerBlock = GemmK;
+    if(ctx.IsFp16())
+        GemmKPerBlock = GemmK / 4;
+    if(ctx.IsBfp16())
+        GemmKPerBlock = GemmK / 2;
+
    // check M, N and K
     std::vector<std::tuple<int, int, int>> validWaveGemmSize = {// std::make_tuple(128, 128, 1),
                                                                 std::make_tuple(128, 64, 1),
@@ -615,11 +621,11 @@ IsValidGridGemmXdlops(const ConvolutionContext& ctx, const std::size_t GemmM, co
                                                                 std::make_tuple(4, 64, 1)};
     return std::any_of(validWaveGemmSize.cbegin(),
                     validWaveGemmSize.cend(),
-                    [ GemmM, GemmN, GemmK ](const auto it) noexcept->bool {
+                    [ GemmM, GemmN, GemmKPerBlock ](const auto it) noexcept->bool {
                         int validMPerWave, validNPerWave, validKPerWave;
                         std::tie(validMPerWave, validNPerWave, validKPerWave) = it;
                         return (GemmM % validMPerWave == 0) && (GemmN % validNPerWave == 0) &&
-                               (GemmK % validKPerWave == 0);
+                               (GemmKPerBlock % validKPerWave == 0);
                     });
 }
 

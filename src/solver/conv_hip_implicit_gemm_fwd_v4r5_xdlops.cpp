@@ -409,7 +409,7 @@ PerformanceImplicitGemmForwardV4R5Xdlops::CalculateGemmABlockCopyPerformancePara
 
         // blockwise-copy support that block_size is larger than thread cluster size, which means
         // some threads may not do threadwise copy
-        if(block_size != ClusterLengths_GemmK * ClusterLengths_GemmM * ClusterLengths_GemmKPack)
+        if(block_size < ClusterLengths_GemmK * ClusterLengths_GemmM * ClusterLengths_GemmKPack)
             MIOPEN_THROW("invalid performance parameter");
     }
     catch(...)
@@ -564,7 +564,7 @@ PerformanceImplicitGemmForwardV4R5Xdlops::CalculateGemmBBlockCopyPerformancePara
 
         // blockwise-copy support that block_size is larger than thread cluster size, which means
         // some threads may not do threadwise copy
-        if(block_size != ClusterLengths_GemmK * ClusterLengths_B * ClusterLengths_GemmKPack)
+        if(block_size < ClusterLengths_GemmK * ClusterLengths_B * ClusterLengths_GemmKPack)
             MIOPEN_THROW("invalid performance parameter");
     }
     catch(...)

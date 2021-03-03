@@ -1114,7 +1114,7 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
 
     bool bIsValid = IsValidGridGemmXdlops(ctx,gemm_m, gemm_n, gemm_k_total);
     MIOPEN_LOG_W(
-            " IsApplicable: " << bIsValid << " gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gemm_k: " << gemm_k_total);
+            " ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable: " << bIsValid << " gemm_m: " << gemm_m << " gemm_n: " << gemm_n << " gemm_k: " << gemm_k_total);
     return bIsValid;
 }
 

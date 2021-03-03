@@ -33,6 +33,7 @@
 #include <miopen/kernel_warnings.hpp>
 #include <miopen/logger.hpp>
 #include <miopen/stringutils.hpp>
+#include <miopen/target_properties.hpp>
 #include <miopen/tmp_dir.hpp>
 #include <miopen/write_file.hpp>
 #include <miopen/env.hpp>
@@ -45,6 +46,13 @@
 
 #include <unistd.h>
 
+/// 0 or undef or wrong - auto-detect
+/// 1 - <blank> / "-Xclang -target-feature -Xclang +code-object-v3"
+/// 2 - "-Xclang -target-feature -Xclang -code-object-v3" /
+///     "-Xclang -target-feature -Xclang +code-object-v3"
+/// 3 - "-mnocode-object-v3" / "-mcode-object-v3"
+/// 4 - "-mcode-object-version=2/3/4"
+MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_OPTION)
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_VERSION)
 MIOPEN_DECLARE_ENV_VAR(MIOPEN_DEVICE_ARCH)
 
@@ -59,34 +67,73 @@ namespace miopen {
 #if !MIOPEN_USE_COMGR
 namespace {
 
-inline std::string GetCodeObjectVersionOptionImpl()
+int DetectCodeObjectOptionSyntax()
 {
-    auto code_object_version = miopen::Value(MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_VERSION{});
+    auto syntax = miopen::Value(MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_OPTION{});
+    if(syntax > 4)
+    {
+        MIOPEN_LOG_E("Bad MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_OPTION, using default");
+        syntax = 0;
+    }
+
+    if(syntax == 0)
+    {
+        if(HipCompilerVersion() >= external_tool_version_t{4, 1, 0})
+            return 4;
+        else
+            return 1;
+    }
+    MIOPEN_LOG_I("MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_OPTION=" << syntax);
+    return syntax;
+}
+
+int DetectCodeObjectVersion()
+{
+    auto co_version = miopen::Value(MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_VERSION{});
     // Very basic syntax check:
-    if(code_object_version == 1 || code_object_version > 4)
+    if(co_version == 1 || co_version > 4)
     {
         MIOPEN_LOG_E("Bad MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_VERSION, using default");
-        code_object_version = 0;
+        co_version = 0;
     }
 
-    if(HipCompilerVersion() >= external_tool_version_t{4, 0, -1})
+    if(co_version == 0)
     {
-        if(code_object_version == 0) // Env.var is unset.
-            return {};               // Rely on compiler's default.
+        if(HipCompilerVersion() >= external_tool_version_t{4, 1, 0})
+            return 4;
+        else if(HipCompilerVersion() >= external_tool_version_t{3, 0, -1})
+            return 3;
         else
-            return std::string("-mcode-object-version=") + std::to_string(code_object_version);
+            return 2;
     }
-    else
-    {
-        // By default, let's assume that OpenCL kernels shall be compiled to
-        // CO v3 format since ROCm 3.0.
-        if(code_object_version == 0)
-            code_object_version = HipCompilerVersion() >= external_tool_version_t{3, 0, -1} ? 3 : 2;
+    MIOPEN_LOG_I("MIOPEN_DEBUG_OPENCL_ENFORCE_CODE_OBJECT_VERSION=" << co_version);
+    return co_version;
+}
 
-        switch(code_object_version)
+std::string GetCodeObjectVersionOptionImpl()
+{
+    const auto co_version = DetectCodeObjectVersion();
+    const auto syntax     = DetectCodeObjectOptionSyntax();
+
+    if(syntax == 4)
+    {
+        return std::string("-mcode-object-version=") + std::to_string(co_version);
+    }
+    else if(syntax == 3)
+    {
+        switch(co_version)
+        {
+        case 2: return {"-mnocode-object-v3"};
+        default: // Fall through.
+        case 3: return {"-mcode-object-v3"};
+        }
+    }
+    else // syntax == 1 or 2
+    {
+        switch(co_version)
         {
         // These options are Ok for ROCm for a long time (since 2.5 or so):
-        case 2: return {"-Xclang -target-feature -Xclang -code-object-v3"};
+        case 2: return {(syntax == 1) ? "" : "-Xclang -target-feature -Xclang -code-object-v3"};
         default: // Fall through.
         case 3: return {"-Xclang -target-feature -Xclang +code-object-v3"};
         }
@@ -108,7 +155,7 @@ static hipModulePtr CreateModule(const boost::filesystem::path& hsaco_file)
     auto status = hipModuleLoad(&raw_m, hsaco_file.string().c_str());
     hipModulePtr m{raw_m};
     if(status != hipSuccess)
-        MIOPEN_THROW_HIP_STATUS(status, "Failed creating module");
+        MIOPEN_THROW_HIP_STATUS(status, "Failed creating module from file " + hsaco_file.string());
     return m;
 }
 
@@ -155,9 +202,9 @@ struct HIPOCProgramImpl
     HIPOCProgramImpl(const std::string& program_name,
                      std::string params,
                      bool is_kernel_str,
-                     std::string dev_name,
+                     const TargetProperties& target_,
                      const std::string& kernel_src)
-        : program(program_name), device(dev_name)
+        : program(program_name), target(target_)
     {
         BuildCodeObject(params, is_kernel_str, kernel_src);
         if(!binary.empty())
@@ -175,7 +222,7 @@ struct HIPOCProgramImpl
     }
 
     std::string program;
-    std::string device;
+    TargetProperties target;
     boost::filesystem::path hsaco_file;
     hipModulePtr module;
     boost::optional<TmpDir> dir;
@@ -194,12 +241,12 @@ struct HIPOCProgramImpl
         }
         else if(miopen::EndsWith(filename, ".s"))
         {
-            const auto assembled = AmdgcnAssemble(src, params);
+            const auto assembled = AmdgcnAssemble(src, params); // FIXME
             WriteFile(assembled, hsaco_file);
         }
         else if(miopen::EndsWith(filename, ".cpp"))
         {
-            hsaco_file = HipBuild(dir, filename, src, params, device);
+            hsaco_file = HipBuild(dir, filename, src, params, target);
         }
         else
         {
@@ -229,11 +276,11 @@ struct HIPOCProgramImpl
             std::lock_guard<std::mutex> lock(mutex);
 #endif
             if(miopen::EndsWith(filename, ".cpp"))
-                comgr::BuildHip(filename, src, params, device, binary);
+                comgr::BuildHip(filename, src, params, target, binary);
             else if(miopen::EndsWith(filename, ".s"))
-                comgr::BuildAsm(filename, src, params, device, binary);
+                comgr::BuildAsm(filename, src, params, target, binary);
             else
-                comgr::BuildOcl(filename, src, params, device, binary);
+                comgr::BuildOcl(filename, src, params, target, binary);
         }
         if(binary.empty())
             MIOPEN_THROW("Code object build failed. Source: " + filename);
@@ -276,10 +323,10 @@ HIPOCProgram::HIPOCProgram() {}
 HIPOCProgram::HIPOCProgram(const std::string& program_name,
                            std::string params,
                            bool is_kernel_str,
-                           std::string dev_name,
+                           const TargetProperties& target,
                            const std::string& kernel_src)
     : impl(std::make_shared<HIPOCProgramImpl>(
-          program_name, params, is_kernel_str, dev_name, kernel_src))
+          program_name, params, is_kernel_str, target, kernel_src))
 {
 }
 

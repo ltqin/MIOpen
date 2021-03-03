@@ -1003,7 +1003,7 @@ bool ConvHipImplicitGemmForwardV4R4Xdlops::IsApplicable(const ConvolutionContext
 
     std::tie(gemm_g, gemm_m, gemm_n, gemm_k_total) = CalculateGemmSize(ctx);
     bool bIsValid = IsValidGridGemmXdlops(ctx, gemm_m, gemm_n, gemm_k_total);
-    MIOPEN_LOG_W(" IsApplicable: " << bIsValid << " gemm_m: " << gemm_m << " gemm_n: " << gemm_n
+    MIOPEN_LOG_W(" ConvHipImplicitGemmForwardV4R4Xdlops::IsApplicable: " << bIsValid << " gemm_m: " << gemm_m << " gemm_n: " << gemm_n
                                    << " gemm_k: " << gemm_k_total);
 
     // return config.IsReallyValid(ctx);

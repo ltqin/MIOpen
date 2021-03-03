@@ -280,7 +280,7 @@ void PerformanceImplicitGemmForwardV4R5Xdlops::EuristicInit(const ConvolutionCon
     // final check
     if(!tmp.IsReallyValid(ctx))
     {
-        MIOPEN_LOG_I("All attempts failed");
+        MIOPEN_LOG_I("All attempts unsuccessful");
     }
     *this = tmp;
     MIOPEN_LOG_I(ToString());
@@ -1028,19 +1028,30 @@ bool ConvHipImplicitGemmForwardV4R5Xdlops::IsApplicable(const ConvolutionContext
     if(!IsIndexRangeLargeEnough(ctx))
         return false;
 
+    if(!ctx.IsLayoutDefault())
+    {
+        return false;
+    }
     // gemm size
-    int gemm_g       = -1;
-    int gemm_m       = -1;
-    int gemm_n       = -1;
-    int gemm_k_total = -1;
+    {
+        int gemm_g       = -1;
+        int gemm_m       = -1;
+        int gemm_n       = -1;
+        int gemm_k_total = -1;
 
-    std::tie(gemm_g, gemm_m, gemm_n, gemm_k_total) = CalculateGemmSize(ctx);
-    bool bIsValid = IsValidGridGemmXdlops(ctx, gemm_m, gemm_n, gemm_k_total);
-    MIOPEN_LOG_W(" IsApplicable: " << bIsValid << " gemm_m: " << gemm_m << " gemm_n: " << gemm_n
-                                   << " gemm_k: " << gemm_k_total);
+        std::tie(gemm_g, gemm_m, gemm_n, gemm_k_total) = CalculateGemmSize(ctx);
 
-    // return config.IsReallyValid(ctx);
-    return bIsValid;
+        if(!IsValidGridGemmXdlops(gemm_m, gemm_n, gemm_k_total))
+            return false;
+    }
+
+    // this particular EuristicInit is so comprehensive, that if it cannot predict a valid
+    // performance config, the problem is probably not applicable
+    PerformanceImplicitGemmForwardV4R5Xdlops config;
+    config.EuristicInit(ctx);
+
+    return config.IsReallyValid(ctx);
+
 }
 
 PerformanceImplicitGemmForwardV4R5Xdlops

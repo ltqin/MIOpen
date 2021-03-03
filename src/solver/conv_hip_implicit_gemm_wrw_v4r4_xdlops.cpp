@@ -244,7 +244,7 @@ void PerformanceImplicitGemmWrwV4R4Xdlops::EuristicInit(const ConvolutionContext
     // final check
     if(!tmp.IsReallyValid(ctx))
     {
-        MIOPEN_LOG_I("All attempts failed");
+        MIOPEN_LOG_I("All attempts unsuccessful");
     }
     *this = tmp;
     MIOPEN_LOG_I(ToString());
@@ -1096,6 +1096,13 @@ bool ConvHipImplicitGemmWrwV4R4Xdlops::IsApplicable(const ConvolutionContext& ct
     if(!IsIndexRangeLargeEnough(ctx))
         return false;
 
+    if(!ctx.IsLayoutDefault())
+    {
+        return false;
+    }
+
+    // this particular EuristicInit is so comprehensive, that if it cannot predict a valid
+    // performance config, the problem is probably not applicable
     PerformanceImplicitGemmWrwV4R4Xdlops config;
     // gemm size
     int gemm_m       = -1;
